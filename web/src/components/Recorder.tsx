@@ -133,7 +133,27 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
     chunksRef.current = []
     
     try {
-      const mediaRecorder = new MediaRecorder(streamRef.current)
+      // Try to enforce ~96 kbps Opus if supported; fall back gracefully if not.
+      const targetBitsPerSecond = 96_000
+      const preferredMimeTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus'
+      ]
+      let chosenMime: string | undefined
+      for (const mt of preferredMimeTypes) {
+        if ((window as any).MediaRecorder?.isTypeSupported?.(mt)) { chosenMime = mt; break }
+      }
+      let mediaRecorder: MediaRecorder
+      try {
+        mediaRecorder = new MediaRecorder(streamRef.current, {
+          mimeType: chosenMime,
+          audioBitsPerSecond: targetBitsPerSecond
+        })
+      } catch {
+        // Retry without options if browser rejected settings
+        mediaRecorder = new MediaRecorder(streamRef.current)
+      }
       mediaRecorderRef.current = mediaRecorder
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data)

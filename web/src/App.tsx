@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import Recorder from './components/Recorder'
 import Results from './components/Results'
+import { submitFeedback } from './lib/api/ratings'
 import { searchByEmbedding, type SearchResult } from './lib/api/search'
 import type { Recording } from './lib/audio/recorder'
 import { audioBlobToMonoFloat32, loadSession, runEmbedding } from './lib/model/embedding'
@@ -14,6 +15,9 @@ function App() {
   const [processingEmbedding, setProcessingEmbedding] = useState(false)
   const [hasRecorded, setHasRecorded] = useState(false)
   const [hasValidAudio, setHasValidAudio] = useState(false)
+  const [lastRecordingBlob, setLastRecordingBlob] = useState<Blob | null>(null)
+  const [submittingRatings, setSubmittingRatings] = useState(false)
+  const [ratingsSubmitted, setRatingsSubmitted] = useState(false)
 
   const [session, setSession] = useState<any>(null)
   const apiUrl = import.meta.env.VITE_API_URL as string | undefined
@@ -59,6 +63,8 @@ function App() {
     setEmbedding(null)
     setHasRecorded(true) // Mark that user has recorded
     setHasValidAudio(false) // Reset audio validation
+    setRatingsSubmitted(false)
+  setLastRecordingBlob(rec.blob)
     
     // Process embedding immediately after recording
     if (session) {
@@ -89,7 +95,7 @@ function App() {
         const { vector } = await runEmbedding(session, mono)
         setEmbedding(vector)
         setHasValidAudio(true) // Mark audio as valid
-        console.log('Embedding extracted:', {
+  console.log('Embedding extracted:', {
           length: vector.length,
           first5: Array.from(vector.slice(0, 5)),
           stats: {
@@ -113,12 +119,44 @@ function App() {
     if (!embedding || !apiUrl) return
     try {
       setLoading(true)
-      const urls = await searchByEmbedding(apiUrl, embedding)
-      setResults(urls)
+  const urls = await searchByEmbedding(apiUrl, embedding)
+  setRatingsSubmitted(false) // allow new rating round for fresh results
+  setResults(urls)
     } catch (e) {
       setError(String(e))
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSubmitRatings = async (data: { urls: string[]; ratings: (-1 | 0 | 1)[] }) => {
+    if (!apiUrl) return
+    // Build feedback endpoint (explicit path provided by backend doc)
+  const feedbackUrl = '/api/feedback'
+    try {
+      setSubmittingRatings(true)
+      setError(null)
+      // Convert audio blob to base64 data URL
+      if (!lastRecordingBlob) throw new Error('No recorded audio available')
+      const audioBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(lastRecordingBlob)
+      })
+      // Map ratings to API spec (like/dislike/null)
+      const mappedRatings = data.ratings.map(r => r === 1 ? 'like' : r === 0 ? 'dislike' : null) as ("like"|"dislike"|null)[]
+      const freesoundUrls = data.urls.map(u => u || null)
+      await submitFeedback(feedbackUrl, {
+        audioQuery: audioBase64,
+        freesound_urls: freesoundUrls,
+        ratings: mappedRatings
+      })
+      setRatingsSubmitted(true)
+    } catch (e:any) {
+      setError(e.message || 'Failed to submit ratings')
+    } finally {
+      setSubmittingRatings(false)
     }
   }
 
@@ -137,8 +175,10 @@ function App() {
 
         <section className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold">What sound is on your mind?</h2>
-            <p className="text-sm text-slate-600">Imitate the sound you're looking for 🎤</p>
+            <h2 className="text-lg font-semibold">Imitate the sound you're looking for 🎤</h2>
+            <p className="text-sm text-slate-600">
+              <span className="font-bold">Stuck?</span> Try imitating an <span style={{ fontStyle: 'italic' }}>explosion</span> 💥, a <span style={{ fontStyle: 'italic' }}>crow</span> 🐦‍⬛, or a <span style={{ fontStyle: 'italic' }}>horn</span> 🚗
+            </p>
             {processingEmbedding && (
               <p className="text-sm text-blue-600 mt-1">Processing embedding...</p>
             )}
@@ -165,7 +205,9 @@ function App() {
             </div>
 
             <div className="mt-4">
-              <Results results={results} />
+              <Results results={results} submitted={ratingsSubmitted} onSubmitRatings={handleSubmitRatings} />
+              {submittingRatings && <p className="mt-4 text-sm text-slate-500">Submitting ratings...</p>}
+              {/* {ratingsSubmitted && <p className="mt-4 text-sm text-green-600">Thanks! Ratings submitted.</p>} */}
             </div>
           </section>
         )}

@@ -6,7 +6,7 @@ html, body, #root {
 }
 
 body {
-  background: #f6f8fb;
+  background: #f0f4ff;
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
 }
@@ -18,10 +18,13 @@ body {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(circle at 25% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0) 55%),
-    radial-gradient(circle at 80% 70%, rgba(225,235,255,0.8), rgba(240,245,255,0) 60%),
-    linear-gradient(135deg, #edf2ff 0%, #e7edf7 50%, #e3e9f5 100%);
-  background-blend-mode: overlay, normal, normal;
+    radial-gradient(circle at 20% 25%, rgba(255,182,193,0.8), rgba(255,182,193,0) 45%),
+    radial-gradient(circle at 75% 15%, rgba(173,216,230,0.85), rgba(173,216,230,0) 50%),
+    radial-gradient(circle at 85% 80%, rgba(221,160,221,0.75), rgba(221,160,221,0) 45%),
+    radial-gradient(circle at 30% 85%, rgba(255,218,185,0.8), rgba(255,218,185,0) 50%),
+    radial-gradient(circle at 60% 50%, rgba(204,255,204,0.7), rgba(204,255,204,0) 40%),
+    linear-gradient(135deg, #f8faff 0%, #f0f4ff 30%, #e6f0ff 70%, #dce8ff 100%);
+  background-blend-mode: overlay, overlay, overlay, overlay, overlay, normal;
 }
 
 /* Simple card styling (no backdrop-filter to avoid GPU cost) */
@@ -32,11 +35,14 @@ section {
 }
 
 @media (prefers-color-scheme: dark) {
-  body { background: #0f172a; color: #f1f5f9; }
+  body { background: #0a0f1a; color: #f1f5f9; }
   .static-bg { background:
-      radial-gradient(circle at 25% 30%, rgba(56,68,90,0.6), rgba(56,68,90,0) 55%),
-      radial-gradient(circle at 80% 70%, rgba(37,51,80,0.55), rgba(37,51,80,0) 60%),
-      linear-gradient(135deg, #1e293b 0%, #162132 60%, #14202f 100%);
+      radial-gradient(circle at 20% 25%, rgba(139,69,89,0.9), rgba(139,69,89,0) 45%),
+      radial-gradient(circle at 75% 15%, rgba(59,88,116,0.95), rgba(59,88,116,0) 50%),
+      radial-gradient(circle at 85% 80%, rgba(88,59,116,0.85), rgba(88,59,116,0) 45%),
+      radial-gradient(circle at 30% 85%, rgba(116,88,59,0.9), rgba(116,88,59,0) 50%),
+      radial-gradient(circle at 60% 50%, rgba(59,116,89,0.8), rgba(59,116,89,0) 40%),
+      linear-gradient(135deg, #0f1729 0%, #1a2332 30%, #1e2a3d 70%, #0a1021 100%);
   }
   section { background: #1e293bcc; border-color: rgba(255,255,255,0.06); box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
 }
