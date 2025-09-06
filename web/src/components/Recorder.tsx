@@ -370,7 +370,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
         style={{height: 120}}
       >
         {(!audioUrl && !isRecording) && (
-          <p className="select-none text-center text-xs text-slate-500 pt-8">
+          <p className="select-none text-center text-xs text-slate-500 pt-12">
             {micReady ? `Ready to record (max ${maxSeconds}s)` : 'Requesting microphone access...'}
           </p>
         )}

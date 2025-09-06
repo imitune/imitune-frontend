@@ -13,6 +13,7 @@ function App() {
   const [embedding, setEmbedding] = useState<Float32Array | null>(null)
   const [processingEmbedding, setProcessingEmbedding] = useState(false)
   const [hasRecorded, setHasRecorded] = useState(false)
+  const [hasValidAudio, setHasValidAudio] = useState(false)
 
   const [session, setSession] = useState<any>(null)
   const apiUrl = import.meta.env.VITE_API_URL as string | undefined
@@ -57,6 +58,7 @@ function App() {
     setResults([])
     setEmbedding(null)
     setHasRecorded(true) // Mark that user has recorded
+    setHasValidAudio(false) // Reset audio validation
     
     // Process embedding immediately after recording
     if (session) {
@@ -66,9 +68,27 @@ function App() {
         console.log('Converting audio blob to mono float32...')
         const mono = await audioBlobToMonoFloat32(rec.blob, 32000) // Downsample to 32kHz
         console.log('Audio converted, mono length:', mono.length)
-        console.log('Running embedding with 32kHz sample rate')
+        
+        // Check if audio has meaningful content
+        const threshold = 0.01
+        let hasContent = false
+        for (let i = 0; i < mono.length; i++) {
+          if (Math.abs(mono[i]) > threshold) {
+            hasContent = true
+            break
+          }
+        }
+        
+        if (!hasContent) {
+          console.log('Audio appears to be empty/silent')
+          setError('Recording appears to be empty or too quiet. Please try recording again.')
+          return
+        }
+        
+        console.log('Audio has content, running embedding with 32kHz sample rate')
         const { vector } = await runEmbedding(session, mono)
         setEmbedding(vector)
+        setHasValidAudio(true) // Mark audio as valid
         console.log('Embedding extracted:', {
           length: vector.length,
           first5: Array.from(vector.slice(0, 5)),
@@ -127,7 +147,7 @@ function App() {
             onRecorded={onRecorded}
             showRedGlow={!hasRecorded}
             extraButton={
-              <button className={`glow-on-hover rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-50 ${embedding && !loading && !processingEmbedding && results.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !apiUrl || processingEmbedding} onClick={onSearch}>
+              <button className={`glow-on-hover rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-50 ${embedding && hasValidAudio && !loading && !processingEmbedding && results.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !hasValidAudio || !apiUrl || processingEmbedding} onClick={onSearch}>
                 {loading ? 'Searching…' : processingEmbedding ? 'Processing…' : 'Search ✨'}
               </button>
             }
@@ -139,7 +159,7 @@ function App() {
         </section>
 
         {results.length > 0 && (
-          <section className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="results-enter mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="mb-4">
               <h2 className="text-lg font-semibold">Matched sounds ✧♪</h2>
             </div>

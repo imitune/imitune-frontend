@@ -119,3 +119,38 @@
   50% { background-position: 400% 0; }
   100% { background-position: 0 0; }
 }
+
+/* Smooth animations for results container */
+.results-enter {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideInFade 0.5s ease-out forwards;
+}
+
+.results-exit {
+  opacity: 1;
+  transform: translateY(0);
+  animation: slideOutFade 0.3s ease-in forwards;
+}
+
+@keyframes slideInFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideOutFade {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+}
