@@ -122,8 +122,8 @@ function App() {
           <Recorder 
             onRecorded={onRecorded} 
             extraButton={
-              <button className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-50" disabled={loading || !embedding || !apiUrl || processingEmbedding} onClick={onSearch}>
-                {loading ? 'Searching…' : processingEmbedding ? 'Processing…' : 'Search'}
+              <button className={`glow-on-hover rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-50 ${embedding && !loading && !processingEmbedding && results.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !apiUrl || processingEmbedding} onClick={onSearch}>
+                {loading ? 'Searching…' : processingEmbedding ? 'Processing…' : 'Search ✨'}
               </button>
             }
           />
