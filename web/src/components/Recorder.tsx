@@ -16,6 +16,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
   const [error, setError] = useState<string | null>(null)
   const [duration, setDuration] = useState<number | null>(null)
   const [ready, setReady] = useState(false)
+  const [micReady, setMicReady] = useState(false)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -51,6 +52,21 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
   }
 
   useEffect(() => {
+    // Request microphone access on component mount
+    const initMicrophone = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        streamRef.current = stream
+        setMicReady(true)
+        setError(null)
+      } catch (e: any) {
+        setError(`Microphone access denied: ${e?.message || 'Unknown error'}`)
+        setMicReady(false)
+      }
+    }
+    
+    initMicrophone()
+    
     return () => {
       // component unmount cleanup
       clearTimer()
@@ -75,22 +91,10 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
       const arrayBuf = await blob.arrayBuffer()
       const audioBuf = await audioCtx.decodeAudioData(arrayBuf)
-      // Detect leading silence to improve UX (MediaRecorder often adds ~50-150ms)
-      const channelData = audioBuf.getChannelData(0)
-      const sampleRate = audioBuf.sampleRate
-      const maxScanSeconds = 1 // limit scanning to 1s
-      const maxScanSamples = Math.min(channelData.length, Math.floor(sampleRate * maxScanSeconds))
-      const threshold = 0.008 // amplitude threshold
-      let firstIdx = 0
-      for (let i = 0; i < maxScanSamples; i++) {
-        if (Math.abs(channelData[i]) > threshold) { firstIdx = i; break }
-      }
-      leadingSilenceRef.current = firstIdx / sampleRate
-      const effectiveDuration = Math.max(0, audioBuf.duration - leadingSilenceRef.current)
-      setDuration(effectiveDuration)
+      // Store the audio buffer for waveform processing
+      audioBufferRef.current = audioBuf
       const rec: Recording = { blob, url, sampleRate: audioBuf.sampleRate, numChannels: audioBuf.numberOfChannels }
       onRecorded?.(rec)
-      audioBufferRef.current = audioBuf
       // Prepare hidden audio element for playback control
       if (!audioElRef.current) {
         audioElRef.current = new Audio()
@@ -108,24 +112,26 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
       setError('Failed to decode audio metadata')
     }
 
-    // release stream tracks to free mic
-    streamRef.current?.getTracks().forEach(t => t.stop())
-    streamRef.current = null
+    // Keep stream alive for next recording - don't release tracks
     mediaRecorderRef.current = null
   }, [onRecorded])
 
   const startRecording = useCallback(async () => {
+    if (!streamRef.current) {
+      setError('Microphone not ready')
+      return
+    }
+    
     setError(null)
-  destroyWaveform()
+    destroyWaveform()
     setAudioUrl(null)
     setDuration(null)
-  setIsPlaying(false)
-  leadingSilenceRef.current = 0
+    setIsPlaying(false)
+    leadingSilenceRef.current = 0
     chunksRef.current = []
+    
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      streamRef.current = stream
-      const mediaRecorder = new MediaRecorder(stream)
+      const mediaRecorder = new MediaRecorder(streamRef.current)
       mediaRecorderRef.current = mediaRecorder
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data)
@@ -144,7 +150,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
         if (mediaRecorder.state !== 'inactive') mediaRecorder.stop()
       }, maxSeconds * 1000)
     } catch (e: any) {
-      setError(e?.message || 'Microphone permission denied')
+      setError(e?.message || 'Recording failed')
       setIsRecording(false)
     }
   }, [finalizeRecording, maxSeconds])
@@ -166,10 +172,8 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
   const togglePlayback = () => {
     if (!audioElRef.current) return
     if (audioElRef.current.paused) {
-      // Skip visual leading silence so playback aligns with waveform start
-      if (leadingSilenceRef.current && audioElRef.current.currentTime < leadingSilenceRef.current) {
-        audioElRef.current.currentTime = leadingSilenceRef.current
-      }
+      // Start playback from the trimmed beginning
+      audioElRef.current.currentTime = leadingSilenceRef.current
       audioElRef.current.play().catch(() => {})
       startRAF()
     } else {
@@ -187,7 +191,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
     const step = () => {
       if (audioElRef.current && !audioElRef.current.paused && duration != null) {
         const effectiveTime = Math.max(0, audioElRef.current.currentTime - leadingSilenceRef.current)
-        const progress = duration ? effectiveTime / duration : 0
+        const progress = duration > 0 ? effectiveTime / duration : 0
         updatePlayhead(Math.min(1, Math.max(0, progress)))
         rafRef.current = requestAnimationFrame(step)
       }
@@ -210,28 +214,83 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
     const ctx = canvas.getContext('2d')!
     ctx.scale(dpr, dpr)
     ctx.clearRect(0, 0, width, height)
-  const channelFull = audioBuf.numberOfChannels > 1 ? mixToMono(audioBuf) : audioBuf.getChannelData(0)
-  const startOffsetSamples = Math.floor(leadingSilenceRef.current * audioBuf.sampleRate)
-  const channel = channelFull.subarray(Math.min(startOffsetSamples, channelFull.length))
+    const channelFull = audioBuf.numberOfChannels > 1 ? mixToMono(audioBuf) : audioBuf.getChannelData(0)
+    
+    // Find actual content boundaries (start and end of non-silence)
+    const threshold = 0.01
+    let startIdx = 0
+    let endIdx = channelFull.length - 1
+    
+    // Find start of content
+    for (let i = 0; i < channelFull.length; i++) {
+      if (Math.abs(channelFull[i]) > threshold) {
+        startIdx = i
+        break
+      }
+    }
+    
+    // Find end of content
+    for (let i = channelFull.length - 1; i >= 0; i--) {
+      if (Math.abs(channelFull[i]) > threshold) {
+        endIdx = i
+        break
+      }
+    }
+    
+    // Use content-only portion for visualization
+    const channel = channelFull.slice(startIdx, endIdx + 1)
+    
+    // Update duration to reflect trimmed content
+    const trimmedDurationStart = startIdx / audioBuf.sampleRate
+    const trimmedDurationEnd = endIdx / audioBuf.sampleRate
+    const contentDuration = trimmedDurationEnd - trimmedDurationStart
+    
+    // Store trim info for playback sync
+    leadingSilenceRef.current = trimmedDurationStart
+    setDuration(Math.max(0.1, contentDuration))
+    
+    if (channel.length === 0) {
+      // No content found, draw flat line
+      ctx.strokeStyle = '#94a3b8'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(0, height / 2)
+      ctx.lineTo(width, height / 2)
+      ctx.stroke()
+      setReady(true)
+      updatePlayhead(0)
+      return
+    }
+    
+    // Find max amplitude for normalization
+    let maxAmp = 0
+    for (let i = 0; i < channel.length; i++) {
+      maxAmp = Math.max(maxAmp, Math.abs(channel[i]))
+    }
+    
     // Compute peaks
     const samplesPerPixel = Math.max(1, Math.floor(channel.length / width))
-    ctx.lineWidth = 1
+    ctx.lineWidth = 2
     ctx.strokeStyle = '#334155'
     ctx.beginPath()
     const midY = height / 2
+    const scale = maxAmp > 0 ? 1 / maxAmp : 1 // normalize to use full height
+    
     for (let x = 0; x < width; x++) {
       const start = x * samplesPerPixel
-      let min = 1.0
-      let max = -1.0
-      for (let i = 0; i < samplesPerPixel; i++) {
-        const v = channel[start + i] || 0
+      let min = 0
+      let max = 0
+      for (let i = 0; i < samplesPerPixel && start + i < channel.length; i++) {
+        const v = channel[start + i] * scale
         if (v < min) min = v
         if (v > max) max = v
       }
-      const y1 = midY + min * (midY - 4)
-      const y2 = midY + max * (midY - 4)
-      ctx.moveTo(x, y1)
-      ctx.lineTo(x, y2)
+      const y1 = midY - min * (midY - 10) // leave 10px margin
+      const y2 = midY - max * (midY - 10)
+      if (Math.abs(max - min) > 0.001) { // only draw if there's actual signal
+        ctx.moveTo(x, y1)
+        ctx.lineTo(x, y2)
+      }
     }
     ctx.stroke()
     setReady(true)
@@ -263,10 +322,11 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
         <button
           type="button"
             onClick={handleRecordClick}
-            className={`relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${isRecording ? 'bg-red-600 hover:bg-red-500 focus:ring-red-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
+            disabled={!micReady}
+            className={`relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? 'bg-red-600 hover:bg-red-500 focus:ring-red-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
             aria-pressed={isRecording}
         >
-          {isRecording ? 'Stop' : audioUrl ? 'Re-record' : 'Record'}
+          {!micReady ? 'Requesting mic...' : isRecording ? 'Stop' : audioUrl ? 'Re-record' : 'Record'}
         </button>
         {audioUrl && (
           <button
@@ -287,7 +347,9 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
         style={{height: 120}}
       >
         {(!audioUrl && !isRecording) && (
-          <p className="select-none text-center text-xs text-slate-500 pt-8">No recording yet. Click Record to start (max {maxSeconds}s).</p>
+          <p className="select-none text-center text-xs text-slate-500 pt-8">
+            {micReady ? `Ready to record (max ${maxSeconds}s)` : 'Requesting microphone access...'}
+          </p>
         )}
         {isRecording && (
           <div className="flex flex-col items-center gap-1 text-center text-xs text-red-600 pt-8">
