@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import Recorder from './components/Recorder'
 import Results from './components/Results'
+import { searchByEmbedding } from './lib/api/search'
 import type { Recording } from './lib/audio/recorder'
 import { audioBlobToMonoFloat32, loadSession, runEmbedding } from './lib/model/embedding'
 
 function App() {
-  const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [results, setResults] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [embedding, setEmbedding] = useState<Float32Array | null>(null)
+  const [processingEmbedding, setProcessingEmbedding] = useState(false)
 
   const [session, setSession] = useState<any>(null)
   const apiUrl = import.meta.env.VITE_API_URL as string | undefined
@@ -17,10 +19,31 @@ function App() {
 
   useEffect(() => {
     let mounted = true
+    console.log('Model URL:', modelUrl)
     if (modelUrl) {
-      loadSession(modelUrl)
-        .then((s) => mounted && setSession(s))
-        .catch((e) => setError(`Failed to load model: ${String(e)}`))
+      console.log('Testing model URL accessibility...')
+      // First test if the model URL is accessible
+      fetch(modelUrl, { method: 'HEAD' })
+        .then(response => {
+          console.log('Model URL test response:', response.status, response.headers.get('content-type'))
+          if (!response.ok) {
+            throw new Error(`Model not accessible: ${response.status}`)
+          }
+          console.log('Model URL accessible, loading session...')
+          return loadSession(modelUrl)
+        })
+        .then((s) => {
+          if (mounted) {
+            console.log('Session loaded successfully:', s)
+            setSession(s)
+          }
+        })
+        .catch((e) => {
+          console.error('Failed to load session:', e)
+          setError(`Failed to load model: ${String(e)}`)
+        })
+    } else {
+      console.log('No model URL provided')
     }
     return () => {
       mounted = false
@@ -28,19 +51,48 @@ function App() {
   }, [modelUrl])
 
   const onRecorded = async (rec: Recording) => {
+    console.log('onRecorded called with:', rec)
     setError(null)
     setResults([])
-    setAudioUrl(rec.url)
+    setEmbedding(null)
+    
+    // Process embedding immediately after recording
+    if (session) {
+      console.log('Session available, processing embedding...')
+      try {
+        setProcessingEmbedding(true)
+        console.log('Converting audio blob to mono float32...')
+        const mono = await audioBlobToMonoFloat32(rec.blob, 32000) // Downsample to 32kHz
+        console.log('Audio converted, mono length:', mono.length)
+        console.log('Running embedding with 32kHz sample rate')
+        const { vector } = await runEmbedding(session, mono)
+        setEmbedding(vector)
+        console.log('Embedding extracted:', {
+          length: vector.length,
+          first5: Array.from(vector.slice(0, 5)),
+          stats: {
+            min: Math.min(...vector),
+            max: Math.max(...vector),
+            mean: vector.reduce((a, b) => a + b, 0) / vector.length
+          }
+        })
+      } catch (e) {
+        console.error('Error processing embedding:', e)
+        setError(`Failed to process embedding: ${String(e)}`)
+      } finally {
+        setProcessingEmbedding(false)
+      }
+    } else {
+      console.log('No session available, skipping embedding processing')
+    }
   }
 
   const onSearch = async () => {
-    if (!session || !apiUrl || !audioUrl) return
+    if (!embedding || !apiUrl) return
     try {
       setLoading(true)
-      const mono = await audioBlobToMonoFloat32(await (await fetch(audioUrl)).blob())
-      const { vector } = await runEmbedding(session, mono, 48000)
-      const res = await (await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vector: Array.from(vector) }) })).json()
-      setResults(res.urls || [])
+      const urls = await searchByEmbedding(apiUrl, embedding)
+      setResults(urls)
     } catch (e) {
       setError(String(e))
     } finally {
@@ -63,6 +115,12 @@ function App() {
           <div className="mb-4">
             <h2 className="text-lg font-semibold">What sound is on your mind?</h2>
             <p className="text-sm text-slate-600">Imitate the sound you're looking for 🎤</p>
+            {processingEmbedding && (
+              <p className="text-sm text-blue-600 mt-1">Processing embedding...</p>
+            )}
+            {embedding && !processingEmbedding && (
+              <p className="text-sm text-green-600 mt-1">✓ Embedding ready</p>
+            )}
           </div>
           <div className="space-y-3">
             <Recorder onRecorded={onRecorded} />
@@ -77,8 +135,8 @@ function App() {
               <h2 className="text-lg font-semibold">Top matches</h2>
               <p className="text-sm text-slate-600">Results come from Pinecone via the API.</p>
             </div>
-            <button className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-50" disabled={loading || !audioUrl || !session || !apiUrl} onClick={onSearch}>
-              {loading ? 'Searching…' : 'Search'}
+            <button className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-50" disabled={loading || !embedding || !apiUrl || processingEmbedding} onClick={onSearch}>
+              {loading ? 'Searching…' : processingEmbedding ? 'Processing…' : 'Search'}
             </button>
           </div>
 

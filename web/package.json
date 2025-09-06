@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "onnxruntime-web": "^1.22.0",
+    "onnxruntime-web": "^1.19.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "wavesurfer.js": "^7.10.1"

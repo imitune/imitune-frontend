@@ -7,4 +7,13 @@ export default defineConfig({
   // Set base if deploying under a repo subpath
   // base: '/<REPO_NAME>/',
   plugins: [react(), tailwindcss()],
+  server: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
+  },
+  optimizeDeps: {
+    exclude: ['onnxruntime-web'],
+  },
 })
