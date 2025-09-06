@@ -12,6 +12,13 @@ export default defineConfig({
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
     },
+    proxy: {
+      '/api': {
+        target: 'https://imitune-backend-ek2udc5sb-chris-projects-3c0d9932.vercel.app',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   optimizeDeps: {
     exclude: ['onnxruntime-web'],
