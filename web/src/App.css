@@ -69,3 +69,53 @@
   50% { background-position: 400% 0; }
   100% { background-position: 0 0; }
 }
+
+/* Red glow effect for record button */
+.red-glow-on-start {
+  position: relative;
+  z-index: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.red-glow-on-start:before {
+  content: '';
+  background: linear-gradient(45deg, #ff0000, #ff4444, #ff6666, #ff0000);
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background-size: 400%;
+  z-index: -1;
+  filter: blur(5px);
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  animation: red-glowing 3s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  border-radius: 9999px; /* matches rounded-full */
+}
+
+.red-glow-on-start.red-glow-active:before {
+  opacity: 1;
+}
+
+.red-glow-on-start:after {
+  z-index: -1;
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #0f172a; /* slate-900 */
+  left: 0;
+  top: 0;
+  border-radius: 9999px; /* matches rounded-full */
+}
+
+.red-glow-on-start:disabled:before {
+  opacity: 0;
+}
+
+@keyframes red-glowing {
+  0% { background-position: 0 0; }
+  50% { background-position: 400% 0; }
+  100% { background-position: 0 0; }
+}

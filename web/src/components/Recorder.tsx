@@ -5,12 +5,13 @@ type Props = {
   onRecorded?: (rec: Recording) => void
   maxSeconds?: number
   extraButton?: React.ReactNode
+  showRedGlow?: boolean
 }
 
 // Single record button component with post-record waveform + playback controls.
 // Press record -> captures up to maxSeconds (default 10) or until stopped.
 // After recording, waveform + play/pause shown. Press record again to discard and start fresh.
-const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton }) => {
+const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, showRedGlow = false }) => {
   const [isRecording, setIsRecording] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
@@ -343,7 +344,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton })
             type="button"
               onClick={handleRecordClick}
               disabled={!micReady}
-              className={`relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? 'bg-red-600 hover:bg-red-500 focus:ring-red-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
+              className={`${showRedGlow && !audioUrl ? 'red-glow-on-start red-glow-active' : ''} relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? 'bg-red-600 hover:bg-red-500 focus:ring-red-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
               aria-pressed={isRecording}
           >
             {!micReady ? 'Requesting mic...' : isRecording ? 'Stop' : audioUrl ? 'Re-record' : 'Record'}

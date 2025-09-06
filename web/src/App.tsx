@@ -12,6 +12,7 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [embedding, setEmbedding] = useState<Float32Array | null>(null)
   const [processingEmbedding, setProcessingEmbedding] = useState(false)
+  const [hasRecorded, setHasRecorded] = useState(false)
 
   const [session, setSession] = useState<any>(null)
   const apiUrl = import.meta.env.VITE_API_URL as string | undefined
@@ -55,6 +56,7 @@ function App() {
     setError(null)
     setResults([])
     setEmbedding(null)
+    setHasRecorded(true) // Mark that user has recorded
     
     // Process embedding immediately after recording
     if (session) {
@@ -108,7 +110,9 @@ function App() {
       <div className="mx-auto max-w-5xl px-4 py-12">
         <header className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Imitune</h1>
-          <p className="text-slate-600">Search for sounds with your voice ✦</p>
+            <p className="text-slate-600">
+              <span style={{ fontFamily: 'cursive' }}>*Magically*</span> search for sounds with your voice 💭
+            </p>
         </header>
 
         <section className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -120,7 +124,8 @@ function App() {
             )}
           </div>
           <Recorder 
-            onRecorded={onRecorded} 
+            onRecorded={onRecorded}
+            showRedGlow={!hasRecorded}
             extraButton={
               <button className={`glow-on-hover rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-50 ${embedding && !loading && !processingEmbedding && results.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !apiUrl || processingEmbedding} onClick={onSearch}>
                 {loading ? 'Searching…' : processingEmbedding ? 'Processing…' : 'Search ✨'}
