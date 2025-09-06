@@ -84,7 +84,7 @@ export default function Results({ results, onSubmitRatings, submitted = false }:
                   href={result.freesound_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
                 >
                   View on Freesound ↗
                 </a>
@@ -124,7 +124,7 @@ export default function Results({ results, onSubmitRatings, submitted = false }:
           </button>
         )}
         {submitted && (
-          <p className="text-sm text-green-600">Thank you for contributing to open research! ♡</p>
+          <p className="text-sm text-green-600 dark:text-green-400">Thank you for contributing to open research! ♡</p>
         )}
       </div>
     </div>

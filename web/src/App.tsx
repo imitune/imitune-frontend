@@ -164,23 +164,23 @@ function App() {
     <>
       {/* Static background gradient */}
       <div className="static-bg" aria-hidden="true" />
-      <div className="relative min-h-screen text-slate-900">
+      <div className="relative min-h-screen text-slate-900 dark:text-slate-100">
       <div className="mx-auto max-w-5xl px-4 pt-4 pb-12">
         <header className="mb-5">
           <h1 className="text-3xl font-bold tracking-tight">Imitune</h1>
-            <p className="text-slate-600">
+            <p className="text-slate-600 dark:text-slate-300">
               <span style={{ fontFamily: 'cursive' }}>*Magically*</span> search for sounds with your voice 💭
             </p>
         </header>
 
-        <section className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold">Imitate the sound you're looking for 🎤</h2>
-            <p className="text-sm text-slate-600">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Imitate the sound you're looking for 🎤</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               <span className="font-bold">Stuck?</span> Try imitating an <span style={{ fontStyle: 'italic' }}>explosion</span> 💥, a <span style={{ fontStyle: 'italic' }}>crow</span> 🐦‍⬛, or a <span style={{ fontStyle: 'italic' }}>horn</span> 🚗
             </p>
             {processingEmbedding && (
-              <p className="text-sm text-blue-600 mt-1">Processing embedding...</p>
+              <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">Processing embedding...</p>
             )}
           </div>
           <Recorder 
@@ -199,14 +199,14 @@ function App() {
         </section>
 
         {results.length > 0 && (
-          <section className="results-enter mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="results-enter mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
             <div className="mb-4">
-              <h2 className="text-lg font-semibold">Matched sounds ✧♪</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Matched sounds ✧♪</h2>
             </div>
 
             <div className="mt-4">
               <Results results={results} submitted={ratingsSubmitted} onSubmitRatings={handleSubmitRatings} />
-              {submittingRatings && <p className="mt-4 text-sm text-slate-500">Submitting ratings...</p>}
+              {submittingRatings && <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Submitting ratings...</p>}
               {/* {ratingsSubmitted && <p className="mt-4 text-sm text-green-600">Thanks! Ratings submitted.</p>} */}
             </div>
           </section>

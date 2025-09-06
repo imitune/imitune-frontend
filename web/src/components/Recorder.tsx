@@ -238,6 +238,11 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
     ctx.clearRect(0, 0, width, height)
     const channelFull = audioBuf.numberOfChannels > 1 ? mixToMono(audioBuf) : audioBuf.getChannelData(0)
     
+    // Detect dark mode for appropriate colors
+    const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    const waveformColor = isDarkMode ? '#94a3b8' : '#334155' // slate-400 for dark, slate-700 for light
+    const referenceLineColor = isDarkMode ? '#64748b' : '#475569' // slate-500 for dark, slate-600 for light
+    
     // Find actual content boundaries (start and end of non-silence)
     const threshold = 0.01
     let startIdx = 0
@@ -273,7 +278,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
     
     if (channel.length === 0) {
       // No content found, draw flat line
-      ctx.strokeStyle = '#94a3b8'
+      ctx.strokeStyle = waveformColor
       ctx.lineWidth = 1
       ctx.beginPath()
       ctx.moveTo(0, height / 2)
@@ -281,7 +286,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
       ctx.stroke()
       
       // Draw horizontal reference line in the middle (same as the flat line in this case)
-      ctx.strokeStyle = '#334155' // same color as waveform
+      ctx.strokeStyle = referenceLineColor
       ctx.lineWidth = 0.5 // thinner
       ctx.beginPath()
       ctx.moveTo(0, height / 2)
@@ -302,7 +307,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
     // Compute peaks
     const samplesPerPixel = Math.max(1, Math.floor(channel.length / width))
     ctx.lineWidth = 2
-    ctx.strokeStyle = '#334155'
+    ctx.strokeStyle = waveformColor
     ctx.beginPath()
     const midY = height / 2
     const scale = maxAmp > 0 ? 1 / maxAmp : 1 // normalize to use full height
@@ -326,7 +331,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
     ctx.stroke()
     
     // Draw horizontal reference line in the middle
-    ctx.strokeStyle = '#334155' // same color as waveform
+    ctx.strokeStyle = referenceLineColor
     ctx.lineWidth = 0.5 // thinner than waveform
     ctx.beginPath()
     ctx.moveTo(0, midY)
@@ -373,30 +378,30 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
             <button
               type="button"
               onClick={togglePlayback}
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600"
             >
               {isPlaying ? 'Pause' : 'Play'}
             </button>
           )}
           {duration && (
-            <span className="text-xs text-slate-500">{duration.toFixed(2)}s</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{duration.toFixed(2)}s</span>
           )}
         </div>
         {extraButton && <div>{extraButton}</div>}
       </div>
       <div
         ref={waveformContainerRef}
-        className={`relative w-full overflow-hidden rounded-md border border-dashed ${audioUrl ? 'border-slate-300' : 'border-slate-200'} bg-slate-50`}
+        className={`relative w-full overflow-hidden rounded-md border border-dashed ${audioUrl ? 'border-slate-300 dark:border-slate-600' : 'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-800`}
         style={{height: 120}}
       >
         {(!audioUrl && !isRecording) && (
-          <p className="select-none text-center text-xs text-slate-500 pt-12">
+          <p className="select-none text-center text-xs text-slate-500 dark:text-slate-400 pt-12">
             {micReady ? `Ready to record (max ${maxSeconds}s)` : 'Requesting microphone access...'}
           </p>
         )}
         {isRecording && (
-          <div className="flex flex-col items-center gap-1 text-center text-xs text-red-600 pt-8">
-            <div className="h-3 w-3 animate-fast-blink rounded-full bg-red-600" />
+          <div className="flex flex-col items-center gap-1 text-center text-xs text-red-600 dark:text-red-400 pt-8">
+            <div className="h-3 w-3 animate-fast-blink rounded-full bg-red-600 dark:bg-red-400" />
             <p>Recording… (max {maxSeconds}s)</p>
           </div>
         )}
