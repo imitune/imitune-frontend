@@ -9,12 +9,11 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     headers: {
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Content-Security-Policy': "frame-src 'self' https://freesound.org https://*.freesound.org;",
     },
     proxy: {
       '/api': {
-        target: 'https://imitune-backend-ek2udc5sb-chris-projects-3c0d9932.vercel.app',
+        target: 'https://imitune-backend-4f21kshwx-chris-projects-3c0d9932.vercel.app',
         changeOrigin: true,
         secure: true,
       },
