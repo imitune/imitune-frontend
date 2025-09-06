@@ -165,8 +165,8 @@ function App() {
       {/* Static background gradient */}
       <div className="static-bg" aria-hidden="true" />
       <div className="relative min-h-screen text-slate-900">
-      <div className="mx-auto max-w-5xl px-4 py-12">
-        <header className="mb-8">
+      <div className="mx-auto max-w-5xl px-4 pt-4 pb-12">
+        <header className="mb-5">
           <h1 className="text-3xl font-bold tracking-tight">Imitune</h1>
             <p className="text-slate-600">
               <span style={{ fontFamily: 'cursive' }}>*Magically*</span> search for sounds with your voice 💭

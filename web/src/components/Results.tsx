@@ -38,34 +38,43 @@ export default function Results({ results, onSubmitRatings, submitted = false }:
   return (
     <div className="space-y-4">
       {/* <p className="text-sm text-slate-600">Found {results.length} matching sounds</p> */}
-    <div className="grid gap-6 md:grid-cols-3">
+  <div className="grid gap-3 md:grid-cols-3">
         {results.map((result) => {
           const soundId = extractSoundId(result.freesound_url)
       const idx = results.indexOf(result)
       const current = ratings[idx]
+      // Visual scale factor to "zoom out" the embedded Freesound player without needing an alternate embed size
+  const playerScale = 0.85 // adjust between 0.5 - 0.85 if you want smaller or larger
+      const basePlayerHeight = 245 // original iframe height used previously
+      const scaledHeight = Math.round(basePlayerHeight * playerScale)
           
           return (
-            <div key={result.id} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="mb-3 flex items-center justify-end">
-                <span className="text-sm font-medium text-green-600">
-                  {(result.score * 100).toFixed(1)}% match
-                </span>
-              </div>
+            <div key={result.id} className="p-0">
               
               {soundId ? (
-                <iframe
-                  frameBorder="0"
-                  scrolling="no"
-                  src={`https://freesound.org/embed/sound/iframe/${soundId}/simple/large/`}
-                  width="100%"
-                  height="245"
-                  className="rounded border"
-                  title={`Sound ${soundId}`}
-                  allow="autoplay; encrypted-media"
-                  sandbox="allow-scripts allow-same-origin allow-presentation"
-                />
+                <div
+                  className="relative w-full overflow-hidden rounded border bg-white"
+                  style={{ height: scaledHeight }}
+                >
+                  <iframe
+                    frameBorder="0"
+                    scrolling="no"
+                    src={`https://freesound.org/embed/sound/iframe/${soundId}/simple/large/`}
+                    // Make iframe larger so that after scaling it still covers container width
+                    style={{
+                      transform: `scale(${playerScale})`,
+                      transformOrigin: 'top left',
+                      width: `${100 / playerScale}%`,
+                      height: basePlayerHeight,
+                      border: '0'
+                    }}
+                    title={`Sound ${soundId}`}
+                    allow="autoplay; encrypted-media"
+                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                  />
+                </div>
               ) : (
-                <div className="flex h-[245px] items-center justify-center rounded border bg-slate-50">
+                <div className="flex items-center justify-center rounded border bg-slate-50" style={{height: scaledHeight}}>
                   <p className="text-sm text-slate-500">Unable to load player</p>
                 </div>
               )}
@@ -77,22 +86,24 @@ export default function Results({ results, onSubmitRatings, submitted = false }:
                   rel="noopener noreferrer"
                   className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
                 >
-                  Freesound ↗
+                  View on Freesound ↗
                 </a>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <button
                     type="button"
                     onClick={() => handleRate(idx, current === 1 ? -1 : 1)}
-                    className={`h-7 w-7 rounded-full text-xs font-semibold transition-colors border ${current === 1 ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300 text-slate-600 hover:bg-green-100'}`}
+                    className={`h-9 w-9 rounded-full text-sm font-semibold transition-colors border flex items-center justify-center shadow-sm ${current === 1 ? 'bg-green-500 border-green-500 text-white shadow-green-500/30' : 'border-slate-300 text-slate-600 hover:bg-green-100'}`}
                     aria-pressed={current === 1}
+          aria-label={current === 1 ? 'Remove like' : 'Like'}
                   >
-                    👍
+          👍
                   </button>
                   <button
                     type="button"
                     onClick={() => handleRate(idx, current === 0 ? -1 : 0)}
-                    className={`h-7 w-7 rounded-full text-xs font-semibold transition-colors border ${current === 0 ? 'bg-red-500 border-red-500 text-white' : 'border-slate-300 text-slate-600 hover:bg-red-100'}`}
+                    className={`h-9 w-9 rounded-full text-sm font-semibold transition-colors border flex items-center justify-center shadow-sm ${current === 0 ? 'bg-red-500 border-red-500 text-white shadow-red-500/30' : 'border-slate-300 text-slate-600 hover:bg-red-100'}`}
                     aria-pressed={current === 0}
+          aria-label={current === 0 ? 'Remove dislike' : 'Dislike'}
                   >
                     👎
                   </button>
@@ -102,7 +113,7 @@ export default function Results({ results, onSubmitRatings, submitted = false }:
           )
         })}
       </div>
-      <div className="pt-2 min-h-[2.25rem]">
+  <div className="pt-1 min-h-0">
         {!submitted && anyRated && (
           <button
             type="button"
