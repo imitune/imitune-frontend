@@ -4,12 +4,13 @@ import type { Recording } from '../lib/audio/recorder'
 type Props = {
   onRecorded?: (rec: Recording) => void
   maxSeconds?: number
+  extraButton?: React.ReactNode
 }
 
 // Single record button component with post-record waveform + playback controls.
 // Press record -> captures up to maxSeconds (default 10) or until stopped.
 // After recording, waveform + play/pause shown. Press record again to discard and start fresh.
-const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
+const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton }) => {
   const [isRecording, setIsRecording] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
@@ -257,6 +258,15 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
       ctx.moveTo(0, height / 2)
       ctx.lineTo(width, height / 2)
       ctx.stroke()
+      
+      // Draw horizontal reference line in the middle (same as the flat line in this case)
+      ctx.strokeStyle = '#334155' // same color as waveform
+      ctx.lineWidth = 0.5 // thinner
+      ctx.beginPath()
+      ctx.moveTo(0, height / 2)
+      ctx.lineTo(width, height / 2)
+      ctx.stroke()
+      
       setReady(true)
       updatePlayhead(0)
       return
@@ -293,6 +303,15 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
       }
     }
     ctx.stroke()
+    
+    // Draw horizontal reference line in the middle
+    ctx.strokeStyle = '#334155' // same color as waveform
+    ctx.lineWidth = 0.5 // thinner than waveform
+    ctx.beginPath()
+    ctx.moveTo(0, midY)
+    ctx.lineTo(width, midY)
+    ctx.stroke()
+    
     setReady(true)
     updatePlayhead(0)
   }, [setReady])
@@ -318,28 +337,31 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <button
-          type="button"
-            onClick={handleRecordClick}
-            disabled={!micReady}
-            className={`relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? 'bg-red-600 hover:bg-red-500 focus:ring-red-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
-            aria-pressed={isRecording}
-        >
-          {!micReady ? 'Requesting mic...' : isRecording ? 'Stop' : audioUrl ? 'Re-record' : 'Record'}
-        </button>
-        {audioUrl && (
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={togglePlayback}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              onClick={handleRecordClick}
+              disabled={!micReady}
+              className={`relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? 'bg-red-600 hover:bg-red-500 focus:ring-red-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
+              aria-pressed={isRecording}
           >
-            {isPlaying ? 'Pause' : 'Play'}
+            {!micReady ? 'Requesting mic...' : isRecording ? 'Stop' : audioUrl ? 'Re-record' : 'Record'}
           </button>
-        )}
-        {duration && (
-          <span className="text-xs text-slate-500">{duration.toFixed(2)}s</span>
-        )}
+          {audioUrl && (
+            <button
+              type="button"
+              onClick={togglePlayback}
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              {isPlaying ? 'Pause' : 'Play'}
+            </button>
+          )}
+          {duration && (
+            <span className="text-xs text-slate-500">{duration.toFixed(2)}s</span>
+          )}
+        </div>
+        {extraButton && <div>{extraButton}</div>}
       </div>
       <div
         ref={waveformContainerRef}

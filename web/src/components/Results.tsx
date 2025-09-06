@@ -18,16 +18,15 @@ export default function Results({ results }: Props) {
   
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">Found {results.length} matching sounds</p>
-      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+      {/* <p className="text-sm text-slate-600">Found {results.length} matching sounds</p> */}
+      <div className="grid gap-6 md:grid-cols-3">
         {results.map((result) => {
           const soundId = extractSoundId(result.freesound_url)
           
           return (
-            <div key={result.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">ID: {result.id}</span>
-                <span className="text-xs font-medium text-green-600">
+            <div key={result.id} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-3 flex items-center justify-end">
+                <span className="text-sm font-medium text-green-600">
                   {(result.score * 100).toFixed(1)}% match
                 </span>
               </div>

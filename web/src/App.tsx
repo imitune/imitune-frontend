@@ -105,10 +105,10 @@ function App() {
       {/* Static background gradient */}
       <div className="static-bg" aria-hidden="true" />
       <div className="relative min-h-screen text-slate-900">
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <div className="mx-auto max-w-5xl px-4 py-12">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">ImiTune</h1>
-          <p className="text-slate-600">Search for sounds by imitating what's on your mind..</p>
+          <h1 className="text-3xl font-bold tracking-tight">Imitune</h1>
+          <p className="text-slate-600">Search for sounds with your voice ✦</p>
         </header>
 
         <section className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -118,34 +118,32 @@ function App() {
             {processingEmbedding && (
               <p className="text-sm text-blue-600 mt-1">Processing embedding...</p>
             )}
-            {embedding && !processingEmbedding && (
-              <p className="text-sm text-green-600 mt-1">✓ Embedding ready</p>
-            )}
           </div>
-          <div className="space-y-3">
-            <Recorder onRecorded={onRecorded} />
-          </div>
+          <Recorder 
+            onRecorded={onRecorded} 
+            extraButton={
+              <button className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-50" disabled={loading || !embedding || !apiUrl || processingEmbedding} onClick={onSearch}>
+                {loading ? 'Searching…' : processingEmbedding ? 'Processing…' : 'Search'}
+              </button>
+            }
+          />
+
+          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
           {/* Audio preview handled by the in-box player; no native audio element */}
         </section>
 
-        <section className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Top matches</h2>
-              <p className="text-sm text-slate-600">Results come from Pinecone via the API.</p>
+        {results.length > 0 && (
+          <section className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold">Matched sounds ✧♪</h2>
             </div>
-            <button className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-50" disabled={loading || !embedding || !apiUrl || processingEmbedding} onClick={onSearch}>
-              {loading ? 'Searching…' : processingEmbedding ? 'Processing…' : 'Search'}
-            </button>
-          </div>
 
-          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-
-          <div className="mt-4">
-            <Results results={results} />
-          </div>
-        </section>
+            <div className="mt-4">
+              <Results results={results} />
+            </div>
+          </section>
+        )}
 
       </div>
       </div>
