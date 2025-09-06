@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import Recorder from './components/Recorder'
 import Results from './components/Results'
-import { searchByEmbedding } from './lib/api/search'
+import { searchByEmbedding, type SearchResult } from './lib/api/search'
 import type { Recording } from './lib/audio/recorder'
 import { audioBlobToMonoFloat32, loadSession, runEmbedding } from './lib/model/embedding'
 
 function App() {
-  const [results, setResults] = useState<string[]>([])
+  const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [embedding, setEmbedding] = useState<Float32Array | null>(null)
@@ -143,7 +143,7 @@ function App() {
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
           <div className="mt-4">
-            <Results urls={results} />
+            <Results results={results} />
           </div>
         </section>
 
