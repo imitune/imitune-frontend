@@ -1,8 +1,42 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* App-level styles */
 html, body, #root {
   height: 100%;
+}
+
+body {
+  background: #f6f8fb;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Static layered gradient (no animation, no filters) */
+.static-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 25% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0) 55%),
+    radial-gradient(circle at 80% 70%, rgba(225,235,255,0.8), rgba(240,245,255,0) 60%),
+    linear-gradient(135deg, #edf2ff 0%, #e7edf7 50%, #e3e9f5 100%);
+  background-blend-mode: overlay, normal, normal;
+}
+
+/* Simple card styling (no backdrop-filter to avoid GPU cost) */
+section {
+  background: #ffffffcc;
+  box-shadow: 0 1px 4px rgba(15,23,42,0.06), 0 4px 16px -4px rgba(15,23,42,0.08);
+  border: 1px solid rgba(255,255,255,0.9);
+}
+
+@media (prefers-color-scheme: dark) {
+  body { background: #0f172a; color: #f1f5f9; }
+  .static-bg { background:
+      radial-gradient(circle at 25% 30%, rgba(56,68,90,0.6), rgba(56,68,90,0) 55%),
+      radial-gradient(circle at 80% 70%, rgba(37,51,80,0.55), rgba(37,51,80,0) 60%),
+      linear-gradient(135deg, #1e293b 0%, #162132 60%, #14202f 100%);
+  }
+  section { background: #1e293bcc; border-color: rgba(255,255,255,0.06); box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
 }

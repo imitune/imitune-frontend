@@ -41,7 +41,7 @@ export async function runEmbedding(
   // Assumes model expects inputs: { audio: float32 [T], sample_rate: int64 [1] }
   // Adjust names/shapes to your model
   const audioTensor = new ort.Tensor('float32', audio, [audio.length])
-  const srTensor = new ort.Tensor('int64', BigInt(sampleRate))
+  const srTensor = new ort.Tensor('int64', new BigInt64Array([BigInt(sampleRate)]), [1])
   const feeds: Record<string, ort.Tensor> = {
     audio: audioTensor,
     sample_rate: srTensor,

@@ -49,30 +49,26 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <>
+      {/* Static background gradient */}
+      <div className="static-bg" aria-hidden="true" />
+      <div className="relative min-h-screen text-slate-900">
       <div className="mx-auto max-w-3xl px-4 py-12">
         <header className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">ImiTune</h1>
-          <p className="text-slate-600">Search Freesound by humming, beatboxing, or imitating.</p>
+          <p className="text-slate-600">Search for sounds by imitating what's on your mind..</p>
         </header>
 
         <section className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Record up to 10 seconds</h2>
-              <p className="text-sm text-slate-600">We run the embedding model in your browser.</p>
-            </div>
-            <div className="flex gap-3">
-              <Recorder onRecorded={onRecorded} />
-              <button className="rounded-lg border px-4 py-2 hover:bg-slate-50" disabled={!audioUrl} onClick={() => { setAudioUrl(null); setResults([]); setError(null) }}>
-                Clear
-              </button>
-            </div>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold">What sound is on your mind?</h2>
+            <p className="text-sm text-slate-600">Imitate the sound you're looking for 🎤</p>
+          </div>
+          <div className="space-y-3">
+            <Recorder onRecorded={onRecorded} />
           </div>
 
-          {audioUrl && (
-            <audio className="mt-4 w-full" controls src={audioUrl} />
-          )}
+          {/* Audio preview handled by the in-box player; no native audio element */}
         </section>
 
         <section className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -93,9 +89,9 @@ function App() {
           </div>
         </section>
 
-        <footer className="text-center text-xs text-slate-500">Made with ❤️, runs fully client-side for embedding.</footer>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
 
