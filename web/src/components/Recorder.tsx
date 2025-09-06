@@ -28,6 +28,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
   const audioBufferRef = useRef<AudioBuffer | null>(null)
   const rafRef = useRef<number | null>(null)
   const objectUrlRef = useRef<string | null>(null)
+  const leadingSilenceRef = useRef<number>(0) // seconds of trimmed leading silence (visual + playback offset)
 
   // Cleanup helpers
   const clearTimer = () => {
@@ -74,7 +75,19 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
       const arrayBuf = await blob.arrayBuffer()
       const audioBuf = await audioCtx.decodeAudioData(arrayBuf)
-      setDuration(audioBuf.duration)
+      // Detect leading silence to improve UX (MediaRecorder often adds ~50-150ms)
+      const channelData = audioBuf.getChannelData(0)
+      const sampleRate = audioBuf.sampleRate
+      const maxScanSeconds = 1 // limit scanning to 1s
+      const maxScanSamples = Math.min(channelData.length, Math.floor(sampleRate * maxScanSeconds))
+      const threshold = 0.008 // amplitude threshold
+      let firstIdx = 0
+      for (let i = 0; i < maxScanSamples; i++) {
+        if (Math.abs(channelData[i]) > threshold) { firstIdx = i; break }
+      }
+      leadingSilenceRef.current = firstIdx / sampleRate
+      const effectiveDuration = Math.max(0, audioBuf.duration - leadingSilenceRef.current)
+      setDuration(effectiveDuration)
       const rec: Recording = { blob, url, sampleRate: audioBuf.sampleRate, numChannels: audioBuf.numberOfChannels }
       onRecorded?.(rec)
       audioBufferRef.current = audioBuf
@@ -107,6 +120,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
     setAudioUrl(null)
     setDuration(null)
   setIsPlaying(false)
+  leadingSilenceRef.current = 0
     chunksRef.current = []
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -152,6 +166,10 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
   const togglePlayback = () => {
     if (!audioElRef.current) return
     if (audioElRef.current.paused) {
+      // Skip visual leading silence so playback aligns with waveform start
+      if (leadingSilenceRef.current && audioElRef.current.currentTime < leadingSilenceRef.current) {
+        audioElRef.current.currentTime = leadingSilenceRef.current
+      }
       audioElRef.current.play().catch(() => {})
       startRAF()
     } else {
@@ -167,8 +185,10 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
   const startRAF = () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     const step = () => {
-      if (audioElRef.current && !audioElRef.current.paused && duration) {
-        updatePlayhead(audioElRef.current.currentTime / duration)
+      if (audioElRef.current && !audioElRef.current.paused && duration != null) {
+        const effectiveTime = Math.max(0, audioElRef.current.currentTime - leadingSilenceRef.current)
+        const progress = duration ? effectiveTime / duration : 0
+        updatePlayhead(Math.min(1, Math.max(0, progress)))
         rafRef.current = requestAnimationFrame(step)
       }
     }
@@ -190,7 +210,9 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
     const ctx = canvas.getContext('2d')!
     ctx.scale(dpr, dpr)
     ctx.clearRect(0, 0, width, height)
-    const channel = audioBuf.numberOfChannels > 1 ? mixToMono(audioBuf) : audioBuf.getChannelData(0)
+  const channelFull = audioBuf.numberOfChannels > 1 ? mixToMono(audioBuf) : audioBuf.getChannelData(0)
+  const startOffsetSamples = Math.floor(leadingSilenceRef.current * audioBuf.sampleRate)
+  const channel = channelFull.subarray(Math.min(startOffsetSamples, channelFull.length))
     // Compute peaks
     const samplesPerPixel = Math.max(1, Math.floor(channel.length / width))
     ctx.lineWidth = 1
@@ -208,8 +230,8 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
       }
       const y1 = midY + min * (midY - 4)
       const y2 = midY + max * (midY - 4)
-      ctx.moveTo(x + 0.5, y1)
-      ctx.lineTo(x + 0.5, y2)
+      ctx.moveTo(x, y1)
+      ctx.lineTo(x, y2)
     }
     ctx.stroke()
     setReady(true)
@@ -261,7 +283,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
       </div>
       <div
         ref={waveformContainerRef}
-        className={`relative w-full overflow-hidden rounded-md border border-dashed ${audioUrl ? 'border-slate-300' : 'border-slate-200'} bg-slate-50 p-2`}
+        className={`relative w-full overflow-hidden rounded-md border border-dashed ${audioUrl ? 'border-slate-300' : 'border-slate-200'} bg-slate-50`}
         style={{height: 120}}
       >
         {(!audioUrl && !isRecording) && (
@@ -269,7 +291,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10 }) => {
         )}
         {isRecording && (
           <div className="flex flex-col items-center gap-1 text-center text-xs text-red-600 pt-8">
-            <div className="h-3 w-3 animate-pulse rounded-full bg-red-600" />
+            <div className="h-3 w-3 animate-fast-blink rounded-full bg-red-600" />
             <p>Recording… (max {maxSeconds}s)</p>
           </div>
         )}
