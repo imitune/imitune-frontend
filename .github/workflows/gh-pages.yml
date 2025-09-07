@@ -35,7 +35,19 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
+        # Write environment variables (from repo secrets) into a .env file so Vite injects them
+        run: |
+          if [ -n "${VITE_BACKEND_BASE}" ]; then echo "VITE_BACKEND_BASE=${VITE_BACKEND_BASE}" >> .env; fi
+          if [ -n "${VITE_API_URL}" ]; then echo "VITE_API_URL=${VITE_API_URL}" >> .env; fi
+          if [ -n "${VITE_FEEDBACK_URL}" ]; then echo "VITE_FEEDBACK_URL=${VITE_FEEDBACK_URL}" >> .env; fi
+          if [ -n "${VITE_MODEL_URL}" ]; then echo "VITE_MODEL_URL=${VITE_MODEL_URL}" >> .env; fi
+          echo "Generated .env for build:" && cat .env || true
+          npm run build
+        env:
+          VITE_BACKEND_BASE: ${{ secrets.VITE_BACKEND_BASE }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_FEEDBACK_URL: ${{ secrets.VITE_FEEDBACK_URL }}
+          VITE_MODEL_URL: ${{ secrets.VITE_MODEL_URL }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

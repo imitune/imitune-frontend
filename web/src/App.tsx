@@ -23,8 +23,32 @@ function App() {
   const [pendingRatingsData, setPendingRatingsData] = useState<{ urls: string[]; ratings: (-1 | 0 | 1)[] } | null>(null)
 
   const [session, setSession] = useState<any>(null)
-  const apiUrl = import.meta.env.VITE_API_URL as string | undefined
-  const modelUrl = import.meta.env.VITE_MODEL_URL as string | undefined
+  // Environment variables (baked at build time). In GitHub Pages workflow you must provide them.
+  const rawApiSearchUrl = import.meta.env.VITE_API_URL as string | undefined // full /api/search endpoint (legacy var)
+  const explicitFeedbackUrl = import.meta.env.VITE_FEEDBACK_URL as string | undefined // optional explicit feedback endpoint
+  const backendBase = import.meta.env.VITE_BACKEND_BASE as string | undefined // optional base like https://your-app.vercel.app
+  const modelEnvUrl = import.meta.env.VITE_MODEL_URL as string | undefined
+
+  // Derive search & feedback endpoints with sensible fallbacks so production (GitHub Pages) works without the dev proxy.
+  const apiUrl = (() => {
+    if (rawApiSearchUrl) return rawApiSearchUrl
+    if (backendBase) return backendBase.replace(/\/$/, '') + '/api/search'
+    return undefined
+  })()
+
+  const feedbackUrl = (() => {
+    if (explicitFeedbackUrl) return explicitFeedbackUrl
+    if (backendBase) return backendBase.replace(/\/$/, '') + '/api/feedback'
+    if (rawApiSearchUrl) {
+      // Try to replace /search with /feedback if pattern matches
+      const m = rawApiSearchUrl.match(/\/api\/search\/?$/)
+      if (m) return rawApiSearchUrl.replace(/\/api\/search\/?$/, '/api/feedback')
+    }
+    return undefined
+  })()
+
+  // Model URL fallback: use provided env var OR default to model in public folder respecting Vite base path
+  const modelUrl = modelEnvUrl || new URL('model.onnx', import.meta.env.BASE_URL).toString()
 
   useEffect(() => {
     let mounted = true
@@ -33,36 +57,38 @@ function App() {
       const stored = localStorage.getItem('imitune_feedback_consent_v1')
       if (stored === 'true') setHasConsent(true)
     } catch {}
-    console.log('Model URL:', modelUrl)
-    if (modelUrl) {
-      console.log('Testing model URL accessibility...')
-      // First test if the model URL is accessible
-      fetch(modelUrl, { method: 'HEAD' })
-        .then(response => {
-          console.log('Model URL test response:', response.status, response.headers.get('content-type'))
-          if (!response.ok) {
-            throw new Error(`Model not accessible: ${response.status}`)
-          }
-          console.log('Model URL accessible, loading session...')
-          return loadSession(modelUrl)
-        })
-        .then((s) => {
-          if (mounted) {
-            console.log('Session loaded successfully:', s)
-            setSession(s)
-          }
-        })
-        .catch((e) => {
-          console.error('Failed to load session:', e)
-          setError(`Failed to load model: ${String(e)}`)
-        })
-    } else {
-      console.log('No model URL provided')
+    console.log('[Init] Derived endpoints:', { apiUrl, feedbackUrl, backendBase, rawApiSearchUrl, modelUrl })
+    if (!apiUrl) {
+      console.warn('Search API URL is undefined. Set VITE_API_URL or VITE_BACKEND_BASE.')
     }
+    if (!feedbackUrl) {
+      console.warn('Feedback API URL is undefined. Set VITE_FEEDBACK_URL, VITE_BACKEND_BASE, or VITE_API_URL ending in /api/search.')
+    }
+    console.log('Model URL (resolved):', modelUrl)
+    console.log('Testing model URL accessibility...')
+    fetch(modelUrl, { method: 'HEAD' })
+      .then(response => {
+        console.log('Model URL test response:', response.status, response.headers.get('content-type'))
+        if (!response.ok) {
+          throw new Error(`Model not accessible: ${response.status}`)
+        }
+        console.log('Model URL accessible, loading session...')
+        return loadSession(modelUrl)
+      })
+      .then((s) => {
+        if (mounted) {
+          console.log('Session loaded successfully:', s)
+          setSession(s)
+        }
+      })
+      .catch((e) => {
+        console.error('Failed to load session:', e)
+        setError(`Failed to load model: ${String(e)}`)
+      })
     return () => {
       mounted = false
     }
-  }, [modelUrl])
+  }, [modelUrl, apiUrl, feedbackUrl, backendBase, rawApiSearchUrl])
 
   const onRecorded = async (rec: Recording) => {
     console.log('onRecorded called with:', rec)
@@ -138,9 +164,10 @@ function App() {
   }
 
   const handleSubmitRatings = async (data: { urls: string[]; ratings: (-1 | 0 | 1)[] }) => {
-    if (!apiUrl) return
-    // Build feedback endpoint (explicit path provided by backend doc)
-  const feedbackUrl = '/api/feedback'
+    if (!feedbackUrl) {
+      setError('Feedback endpoint not configured.')
+      return
+    }
     try {
       setSubmittingRatings(true)
       setError(null)
@@ -155,7 +182,7 @@ function App() {
       // Map ratings to API spec (like/dislike/null)
       const mappedRatings = data.ratings.map(r => r === 1 ? 'like' : r === 0 ? 'dislike' : null) as ("like"|"dislike"|null)[]
       const freesoundUrls = data.urls.map(u => u || null)
-      await submitFeedback(feedbackUrl, {
+  await submitFeedback(feedbackUrl, {
         audioQuery: audioBase64,
         freesound_urls: freesoundUrls,
         ratings: mappedRatings

@@ -100,13 +100,6 @@ The function should:
 
 `src/lib/model/embedding.ts` assumes input names `{ audio, sample_rate }` and returns the first output tensor as the embedding. Adjust names/shapes as needed for your model.
 
-## Environment Variables
-
-- `VITE_MODEL_URL`: URL path to your model (e.g., `/model.onnx` or full URL)
-- `VITE_API_URL`: URL to the Vercel function endpoint
-
-Create `.env.local` (not committed) with the keys above.
-
 ## License
 
 MIT
