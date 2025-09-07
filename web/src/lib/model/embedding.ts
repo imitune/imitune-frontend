@@ -60,23 +60,16 @@ export async function audioBlobToMonoFloat32(blob: Blob, targetSampleRate: numbe
     duration: audioBuffer.length / audioBuffer.sampleRate
   })
   
-  // downmix to mono
-  const numChannels = audioBuffer.numberOfChannels
-  const length = audioBuffer.length
-  const mono = new Float32Array(length)
-  for (let ch = 0; ch < numChannels; ch++) {
-    const data = audioBuffer.getChannelData(ch)
-    for (let i = 0; i < length; i++) {
-      mono[i] += data[i] / numChannels
-    }
-  }
-  
-  // Downsample to target sample rate if needed
-  let processedAudio: Float32Array = mono
+  // Use Web Audio API for proper resampling with anti-aliasing
+  let processedAudio: Float32Array
   if (audioBuffer.sampleRate !== targetSampleRate) {
-    console.log(`Downsampling from ${audioBuffer.sampleRate}Hz to ${targetSampleRate}Hz`)
-    processedAudio = downsample(mono, audioBuffer.sampleRate, targetSampleRate)
-    console.log('Downsampled audio length:', processedAudio.length)
+    console.log(`Resampling from ${audioBuffer.sampleRate}Hz to ${targetSampleRate}Hz using Web Audio API`)
+    processedAudio = await resampleAudioBuffer(audioBuffer, targetSampleRate)
+    console.log('Resampled audio length:', processedAudio.length)
+  } else {
+    // Still need to convert to mono if sample rates match
+    console.log('Sample rates match, converting to mono only')
+    processedAudio = convertToMono(audioBuffer)
   }
   
   // Zero-pad to 10 seconds at target sample rate
@@ -91,25 +84,48 @@ export async function audioBlobToMonoFloat32(blob: Blob, targetSampleRate: numbe
   return processedAudio
 }
 
-// Simple linear interpolation downsampling
-function downsample(input: Float32Array, fromRate: number, toRate: number): Float32Array {
-  if (fromRate === toRate) return input
+// Convert multi-channel audio buffer to mono
+function convertToMono(audioBuffer: AudioBuffer): Float32Array {
+  const numChannels = audioBuffer.numberOfChannels
+  const length = audioBuffer.length
+  const mono = new Float32Array(length)
   
-  const ratio = fromRate / toRate
-  const outputLength = Math.floor(input.length / ratio)
-  const output = new Float32Array(outputLength)
-  
-  for (let i = 0; i < outputLength; i++) {
-    const srcIndex = i * ratio
-    const srcIndexFloor = Math.floor(srcIndex)
-    const srcIndexCeil = Math.min(srcIndexFloor + 1, input.length - 1)
-    const fraction = srcIndex - srcIndexFloor
-    
-    // Linear interpolation
-    output[i] = input[srcIndexFloor] * (1 - fraction) + input[srcIndexCeil] * fraction
+  for (let ch = 0; ch < numChannels; ch++) {
+    const data = audioBuffer.getChannelData(ch)
+    for (let i = 0; i < length; i++) {
+      mono[i] += data[i] / numChannels
+    }
   }
   
-  return output
+  return mono
+}
+
+// Resample audio buffer using Web Audio API with proper anti-aliasing
+async function resampleAudioBuffer(audioBuffer: AudioBuffer, targetSampleRate: number): Promise<Float32Array> {
+  // First convert to mono at original sample rate
+  const monoData = convertToMono(audioBuffer)
+  
+  // Calculate target length maintaining the same duration
+  const duration = audioBuffer.duration
+  const targetLength = Math.round(targetSampleRate * duration)
+  
+  // Create offline context with target sample rate
+  const offlineCtx = new OfflineAudioContext(1, targetLength, targetSampleRate)
+  
+  // Create a mono buffer at the original sample rate
+  const monoBuffer = offlineCtx.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate)
+  const channelData = monoBuffer.getChannelData(0)
+  channelData.set(monoData)
+  
+  // Create source and connect to destination
+  const source = offlineCtx.createBufferSource()
+  source.buffer = monoBuffer
+  source.connect(offlineCtx.destination)
+  source.start(0)
+  
+  // Render with proper resampling
+  const resampledBuffer = await offlineCtx.startRendering()
+  return resampledBuffer.getChannelData(0)
 }
 
 export async function runEmbedding(
