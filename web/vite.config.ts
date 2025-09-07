@@ -4,8 +4,8 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Set base if deploying under a repo subpath
-  base: '/imitune-frontend/',
+  // Set base for root domain deployment
+  base: '/',
   plugins: [react(), tailwindcss()],
   server: {
     headers: {
