@@ -1,0 +1,25 @@
+[package]
+name = "imitune"
+version = "0.1.0"
+description = "Imitune Desktop App"
+authors = ["You"]
+license = ""
+repository = ""
+default-run = "imitune"
+edition = "2021"
+rust-version = "1.60"
+
+# This section is for dependencies needed to RUN the application.
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+tauri = { version = "1.4.0", features = ["shell-open"] }
+
+# This NEW section is for dependencies needed to BUILD the application.
+[build-dependencies]
+tauri-build = { version = "1.4.0", features = [] }
+
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
+
