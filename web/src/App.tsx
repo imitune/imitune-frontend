@@ -234,10 +234,23 @@ function App() {
       <div className="relative min-h-screen text-slate-900 dark:text-slate-100">
       <div className="mx-auto max-w-5xl px-4 pt-10 pb-20">
         <header className="mb-8 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div 
+            className="flex items-center gap-4 cursor-pointer"
+            onClick={() => window.location.reload()}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                window.location.reload()
+              }
+            }}
+          >
             <img src={soundalikeLogo} alt="soundalike logo" style={{ height: '48px' }} />
             <h1 className="text-4xl font-bold tracking-tight" style={{ margin: 0 }}>
-              <span style={{ fontStyle: 'italic' }}>sound</span>alike
+              <span style={{ color: 'gray', fontStyle: 'normal' }}>that</span>
+              <span style={{ color: 'black', fontStyle: 'italic' }}>soundslike</span>
+              <span style={{ color: 'gray', fontStyle: 'normal' }}>.me</span>
             </h1>
           </div>
           <div className="hidden md:block text-xl md:text-1xl text-slate-600 dark:text-slate-300 text-right">
