@@ -246,19 +246,19 @@ function App() {
               }
             }}
           >
-            <img src={soundalikeLogo} alt="soundalike logo" style={{ height: '48px' }} />
+            <img src={soundalikeLogo} alt="soundalike logo" style={{ height: '56px' }} />
             <h1 className="text-4xl font-bold tracking-tight" style={{ margin: 0 }}>
-              <span style={{ color: 'gray', fontStyle: 'normal' }}>that</span>
-              <span style={{ color: 'black', fontStyle: 'italic' }}>soundslike</span>
-              <span style={{ color: 'gray', fontStyle: 'normal' }}>.me</span>
+                <span className="text-slate-500 dark:text-slate-400" style={{ fontStyle: 'normal' }}>that</span>
+              <span className="text-black dark:text-white" style={{ fontStyle: 'italic' }}>soundslike</span>
+              <span className="text-slate-500 dark:text-slate-400" style={{ fontStyle: 'normal' }}>.me</span>
             </h1>
           </div>
-          <div className="hidden md:block text-xl md:text-1xl text-slate-600 dark:text-slate-300 text-right">
-            <span style={{ fontFamily: 'cursive' }}>Magically</span>  search for sounds with your voice
-          </div>
+            <div className="hidden md:block text-xl md:text-1xl text-black dark:text-slate-300 text-right">
+                <span className="quintessential-regular" style={{ fontStyle: 'italic' }}>*Magically*  </span> search for sounds with your voice
+            </div>
         </header>
 
-        <section className="mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
+        <section className="mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-6 shadow-sm backdrop-blur-sm">
           <Recorder
             onRecorded={onRecorded}
             showRedGlow={!hasRecorded}
@@ -284,7 +284,7 @@ function App() {
         </section>
 
         {results.length > 0 && (
-          <section className="results-enter mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
+          <section className="results-enter mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-6 shadow-sm backdrop-blur-sm">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Matched sounds ✧♪</h2>
             </div>
@@ -308,7 +308,21 @@ function App() {
             </p>
             <div className="flex justify-end gap-3">
               <button type="button" onClick={cancelConsent} className="rounded-md px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">Cancel</button>
-              <button type="button" onClick={acceptConsentAndSubmit} className="rounded-md px-4 py-2 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600">Agree & Submit</button>
+              <button 
+                type="button" 
+                onClick={acceptConsentAndSubmit} 
+                className="rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none"
+                style={{ 
+                  backgroundColor: 'rgb(143, 177, 120)', 
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgb(133, 167, 110)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgb(143, 177, 120)'}
+                onFocus={(e) => e.currentTarget.style.boxShadow = '0 0 0 2px rgba(143, 177, 120, 0.5)'}
+                onBlur={(e) => e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)'}
+              >
+                Agree & Submit
+              </button>
             </div>
           </div>
         </div>

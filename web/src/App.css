@@ -1,3 +1,9 @@
+.quintessential-regular {
+  font-family: "Quintessential", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -13,21 +19,21 @@ html, body, #root {
   font-family: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* Background gradient matching the logo */
+/* Background - solid beige color */
 .static-bg {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #f7f3e7 0%, #ffffff 30%, rgba(143, 177, 20, 0.15) 60%, rgba(143, 177, 20, 0.08) 100%);
+  background: rgb(247, 243, 235);
   z-index: -1;
 }
 
-/* Dark mode background gradient */
+/* Dark mode background gradient - neutral dark tones */
 @media (prefers-color-scheme: dark) {
   .static-bg {
-    background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 30%, rgba(143, 177, 20, 0.2) 60%, rgba(143, 177, 20, 0.1) 100%);
+    background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 25%, #363636 50%, #424242 75%, #4e4e4e 100%);
   }
 }
 
@@ -124,6 +130,22 @@ html, body, #root {
 .blue-glow-button:disabled:after { background:#64748b; }
 @keyframes blue-glowing { 0%{background-position:0 0;} 50%{background-position:250% 0;} 100%{background-position:0 0;} }
 
+/* Green glow variant for feedback submit */
+.green-glow-button { position: relative; z-index: 0; transition: all 0.3s ease-in-out; }
+.green-glow-button:before {
+  content: '';
+  background: linear-gradient(60deg, rgb(143, 177, 120), rgb(132, 204, 22), rgb(143, 177, 120), rgb(132, 204, 22));
+  position: absolute; top: -2px; left: -2px; background-size: 300%;
+  z-index: -1; filter: blur(5px); width: calc(100% + 4px); height: calc(100% + 4px);
+  animation: green-glowing 8s linear infinite; opacity: 0; transition: opacity 0.3s ease-in-out;
+  border-radius: 0.5rem;
+}
+.green-glow-button.green-glow-active:before { opacity: 1; }
+.green-glow-button:after { z-index: -1; content: ''; position: absolute; width:100%; height:100%; background:#0f172a; left:0; top:0; border-radius:0.5rem; }
+.green-glow-button:disabled:before { opacity:0; }
+.green-glow-button:disabled:after { background:#64748b; }
+@keyframes green-glowing { 0%{background-position:0 0;} 50%{background-position:250% 0;} 100%{background-position:0 0;} }
+
 /* Red glow effect for record button */
 .red-glow-on-start {
   position: relative;
@@ -133,7 +155,7 @@ html, body, #root {
 
 .red-glow-on-start:before {
   content: '';
-  background: linear-gradient(45deg, #ff0000, #ff4444, #ff6666, #ff0000);
+  background: linear-gradient(45deg, rgb(143, 177, 120), rgb(132, 204, 22), rgb(143, 177, 120), rgb(132, 204, 22));
   position: absolute;
   top: -2px;
   left: -2px;
@@ -142,7 +164,7 @@ html, body, #root {
   filter: blur(5px);
   width: calc(100% + 4px);
   height: calc(100% + 4px);
-  animation: red-glowing 3s linear infinite;
+  animation: record-green-glowing 3s linear infinite;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
   border-radius: 9999px; /* matches rounded-full */
@@ -168,7 +190,7 @@ html, body, #root {
   opacity: 0;
 }
 
-@keyframes red-glowing {
+@keyframes record-green-glowing {
   0% { background-position: 0 0; }
   50% { background-position: 400% 0; }
   100% { background-position: 0 0; }
@@ -196,6 +218,18 @@ html, body, #root {
     opacity: 1;
     transform: translateY(0) scale(1);
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+}
+
+/* Transparent container backgrounds */
+section.mb-8.rounded-xl {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(8px);
+}
+
+@media (prefers-color-scheme: dark) {
+  section.mb-8.rounded-xl {
+    background-color: rgba(30, 41, 59, 0.7) !important;
   }
 }
 

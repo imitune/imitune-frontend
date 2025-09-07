@@ -350,7 +350,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
             type="button"
               onClick={handleRecordClick}
               disabled={!micReady}
-              className={`${showRedGlow && !audioUrl ? 'red-glow-on-start red-glow-active' : ''} relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? 'bg-red-600 hover:bg-red-500 focus:ring-red-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
+              className={`${showRedGlow && !audioUrl ? 'red-glow-on-start red-glow-active' : ''} relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? 'bg-green-600 hover:bg-green-500 focus:ring-green-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
               aria-pressed={isRecording}
           >
             {!micReady ? 'Requesting mic...' : isRecording ? 'Stop' : audioUrl ? 'Re-record' : 'Record'}
@@ -387,13 +387,13 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
         )}
         {isRecording && (
           <div className="flex flex-col items-center gap-1 text-center text-xs text-red-600 dark:text-red-400 pt-8">
-            <div className="h-3 w-3 animate-fast-blink rounded-full bg-red-600 dark:bg-red-400" />
+            <div className="h-3 w-3 animate-fast-blink rounded-full bg-green-600 dark:bg-green-400" />
             <p>Recording… (max {maxSeconds}s)</p>
           </div>
         )}
         <canvas ref={canvasRef} className={`absolute left-0 top-0 h-full w-full ${ready && audioUrl ? 'opacity-100' : 'opacity-0 transition-opacity'} pointer-events-none`} />
         {audioUrl && ready && (
-          <div ref={playheadRef} className="pointer-events-none absolute top-0 h-full w-px bg-red-600 shadow-[0_0_2px_rgba(220,38,38,0.8)]" />
+          <div ref={playheadRef} className="pointer-events-none absolute top-0 h-full w-px bg-green-600 shadow-[0_0_2px_rgba(34,197,94,0.8)]" />
         )}
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}
