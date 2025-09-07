@@ -70,6 +70,22 @@
   100% { background-position: 0 0; }
 }
 
+/* Blue glow variant for feedback submit */
+.blue-glow-button { position: relative; z-index: 0; transition: all 0.3s ease-in-out; }
+.blue-glow-button:before {
+  content: '';
+  background: linear-gradient(60deg, #0ea5e9, #2563eb, #1d4ed8, #0ea5e9);
+  position: absolute; top: -2px; left: -2px; background-size: 250%;
+  z-index: -1; filter: blur(5px); width: calc(100% + 4px); height: calc(100% + 4px);
+  animation: blue-glowing 10s linear infinite; opacity: 0; transition: opacity 0.3s ease-in-out;
+  border-radius: 0.5rem;
+}
+.blue-glow-button.blue-glow-active:before { opacity: 1; }
+.blue-glow-button:after { z-index: -1; content: ''; position: absolute; width:100%; height:100%; background:#0f172a; left:0; top:0; border-radius:0.5rem; }
+.blue-glow-button:disabled:before { opacity:0; }
+.blue-glow-button:disabled:after { background:#64748b; }
+@keyframes blue-glowing { 0%{background-position:0 0;} 50%{background-position:250% 0;} 100%{background-position:0 0;} }
+
 /* Red glow effect for record button */
 .red-glow-on-start {
   position: relative;

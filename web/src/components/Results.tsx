@@ -7,6 +7,7 @@ type Props = {
   results: SearchResult[]
   onSubmitRatings?: (ratings: { urls: string[]; ratings: Rating[] }) => void
   submitted?: boolean
+  submitting?: boolean
 }
 
 // Extract sound ID from Freesound URL
@@ -16,7 +17,7 @@ function extractSoundId(freesoundUrl: string): string | null {
   return match ? match[1] : null
 }
 
-export default function Results({ results, onSubmitRatings, submitted = false }: Props) {
+export default function Results({ results, onSubmitRatings, submitted = false, submitting = false }: Props) {
   if (!results.length) {
     return <p className="text-sm text-slate-600">No results yet. Record and search.</p>
   }
@@ -114,17 +115,18 @@ export default function Results({ results, onSubmitRatings, submitted = false }:
         })}
       </div>
   <div className="pt-1 min-h-0">
-        {!submitted && anyRated && (
+    {!submitted && anyRated && (
           <button
             type="button"
             onClick={handleSubmit}
-            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+      disabled={submitting}
+            className={`blue-glow-button ${anyRated && !submitting ? 'blue-glow-active' : ''} rounded-md px-4 py-2 text-sm font-medium text-white shadow focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed ${submitting ? 'bg-slate-700' : 'bg-slate-900 hover:bg-slate-800'}`}
           >
-            Submit ratings
+      {submitting ? 'Submitting…' : 'Submit ratings'}
           </button>
         )}
         {submitted && (
-          <p className="text-sm text-green-600 dark:text-green-400">Thank you for contributing to open research! ♡</p>
+          <p className="text-sm">Thank you for contributing to open research ♡</p>
         )}
       </div>
     </div>

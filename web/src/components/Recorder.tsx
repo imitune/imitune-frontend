@@ -6,12 +6,13 @@ type Props = {
   maxSeconds?: number
   extraButton?: React.ReactNode
   showRedGlow?: boolean
+  centerContent?: React.ReactNode
 }
 
 // Single record button component with post-record waveform + playback controls.
 // Press record -> captures up to maxSeconds (default 10) or until stopped.
 // After recording, waveform + play/pause shown. Press record again to discard and start fresh.
-const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, showRedGlow = false }) => {
+const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, showRedGlow = false, centerContent }) => {
   const [isRecording, setIsRecording] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
@@ -363,8 +364,8 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+  <div className="relative flex items-center gap-4 h-14 md:h-16">
+        <div className="flex items-center gap-4 flex-shrink-0">
           <button
             type="button"
               onClick={handleRecordClick}
@@ -387,7 +388,12 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
             <span className="text-xs text-slate-500 dark:text-slate-400">{duration.toFixed(2)}s</span>
           )}
         </div>
-        {extraButton && <div>{extraButton}</div>}
+        {centerContent && (
+          <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center px-2 max-w-[640px] pointer-events-none">
+            {centerContent}
+          </div>
+        )}
+        {extraButton && <div className="flex-shrink-0 ml-auto flex items-center">{extraButton}</div>}
       </div>
       <div
         ref={waveformContainerRef}
