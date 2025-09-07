@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import soundalikeLogo from './assets/soundalike.svg'
 import Recorder from './components/Recorder'
 import Results from './components/Results'
 import { submitFeedback } from './lib/api/ratings'
@@ -232,11 +233,16 @@ function App() {
       <div className="static-bg" aria-hidden="true" />
       <div className="relative min-h-screen text-slate-900 dark:text-slate-100">
       <div className="mx-auto max-w-5xl px-4 pt-10 pb-20">
-        <header className="mb-8">
-          {/* <h1 className="text-3xl font-bold tracking-tight">Imitune</h1> */}
-          <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300">
-        <span style={{ fontFamily: 'cursive' }}>*Magically*</span> search for sounds with your voice.
-          </p>
+        <header className="mb-8 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <img src={soundalikeLogo} alt="soundalike logo" style={{ height: '48px' }} />
+            <h1 className="text-4xl font-bold tracking-tight" style={{ margin: 0 }}>
+              <span style={{ fontStyle: 'italic' }}>sound</span>alike
+            </h1>
+          </div>
+          <div className="hidden md:block text-xl md:text-1xl text-slate-600 dark:text-slate-300 text-right">
+            <span style={{ fontFamily: 'cursive' }}>Magically</span>  search for sounds with your voice
+          </div>
         </header>
 
         <section className="mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
