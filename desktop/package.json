@@ -1,0 +1,12 @@
+{
+  "name": "imitune-desktop",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.11"
+  }
+}
