@@ -47,8 +47,9 @@ function App() {
     return undefined
   })()
 
-  // Model URL fallback: use provided env var OR default to model in public folder respecting Vite base path
-  const modelUrl = modelEnvUrl || new URL('model.onnx', import.meta.env.BASE_URL).toString()
+  // Model URL fallback: use provided env var OR default to model in public folder respecting Vite base path.
+  // Avoid using new URL() with a path-only base (can throw). import.meta.env.BASE_URL always ends with '/'.
+  const modelUrl = modelEnvUrl || (import.meta.env.BASE_URL + 'model.onnx')
 
   useEffect(() => {
     let mounted = true
