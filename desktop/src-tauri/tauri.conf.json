@@ -1,10 +1,10 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeBuildCommand": "npm install --prefix ../web && npm run build --prefix ../web",
-    "beforeDevCommand": "npm install --prefix ../web && npm run dev --prefix ../web",
-    "devPath": "http://localhost:5173",
-    "distDir": "../../web/dist"
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "",
+    "devPath": "https://thatsoundslike.me/",
+    "distDir": "https://thatsoundslike.me/"
   },
   "package": {
     "productName": "Imitune",
@@ -16,6 +16,13 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "http": {
+        "all": true,
+        "scope": [
+          "http://**/*",
+          "https://**/*"
+        ]
       }
     },
     "bundle": {
@@ -30,14 +37,11 @@
       "identifier": "com.imitune.dev",
       "longDescription": "",
       "macOS": {
-        "entitlements": null,
+        "entitlements": "entitlements.plist",
         "exceptionDomain": "",
         "frameworks": [],
         "providerShortName": null,
         "signingIdentity": null
-      },
-      "dmg": {
-        "background": null
       },
       "resources": [],
       "shortDescription": "",
@@ -49,7 +53,7 @@
       }
     },
     "security": {
-      "csp": null
+      "csp": "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' data: blob:;"
     },
     "updater": {
       "active": false

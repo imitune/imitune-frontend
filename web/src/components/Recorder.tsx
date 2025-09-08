@@ -30,6 +30,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
   const playheadRef = useRef<HTMLDivElement | null>(null)
   const audioElRef = useRef<HTMLAudioElement | null>(null)
   const audioBufferRef = useRef<AudioBuffer | null>(null)
+  const audioCtxRef = useRef<AudioContext | null>(null)
   const rafRef = useRef<number | null>(null)
   const objectUrlRef = useRef<string | null>(null)
   const leadingSilenceRef = useRef<number>(0) // seconds of trimmed leading silence (visual + playback offset)
@@ -78,131 +79,11 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         try { mediaRecorderRef.current.stop() } catch {}
       }
+      audioCtxRef.current?.close().catch(console.error);
     }
   }, [])
 
-  const finalizeRecording = useCallback(async () => {
-    setIsRecording(false)
-    clearTimer()
-    const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
-    chunksRef.current = []
-    const url = URL.createObjectURL(blob)
-    objectUrlRef.current = url
-    setAudioUrl(url)
-    try {
-      // Get sample rate + channels
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
-      const arrayBuf = await blob.arrayBuffer()
-      const audioBuf = await audioCtx.decodeAudioData(arrayBuf)
-      // Store the audio buffer for waveform processing
-      audioBufferRef.current = audioBuf
-      const rec: Recording = { blob, url, sampleRate: audioBuf.sampleRate, numChannels: audioBuf.numberOfChannels }
-      onRecorded?.(rec)
-      // Prepare hidden audio element for playback control
-      if (!audioElRef.current) {
-        audioElRef.current = new Audio()
-      }
-      audioElRef.current.src = url
-      audioElRef.current.onplay = () => setIsPlaying(true)
-      audioElRef.current.onpause = () => setIsPlaying(false)
-      audioElRef.current.onended = () => {
-        setIsPlaying(false)
-        updatePlayhead(0)
-      }
-      drawWaveform()
-    } catch (e) {
-      // Non-fatal if decode fails
-      setError('Failed to decode audio metadata')
-    }
-
-    // Keep stream alive for next recording - don't release tracks
-    mediaRecorderRef.current = null
-  }, [onRecorded])
-
-  const startRecording = useCallback(async () => {
-    if (!streamRef.current) {
-      setError('Microphone not ready')
-      return
-    }
-    
-    setError(null)
-    destroyWaveform()
-    setAudioUrl(null)
-    setDuration(null)
-    setIsPlaying(false)
-    leadingSilenceRef.current = 0
-    chunksRef.current = []
-    
-    try {
-      const mediaRecorder = new MediaRecorder(streamRef.current)
-      mediaRecorderRef.current = mediaRecorder
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data)
-      }
-      mediaRecorder.onstop = () => {
-        finalizeRecording()
-      }
-      mediaRecorder.onerror = (e) => {
-        setError(e.error?.message || 'Recording error')
-        setIsRecording(false)
-      }
-      mediaRecorder.start()
-      setIsRecording(true)
-      // Auto stop at maxSeconds
-      timerRef.current = window.setTimeout(() => {
-        if (mediaRecorder.state !== 'inactive') mediaRecorder.stop()
-      }, maxSeconds * 1000)
-    } catch (e: any) {
-      setError(e?.message || 'Recording failed')
-      setIsRecording(false)
-    }
-  }, [finalizeRecording, maxSeconds])
-
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop()
-    }
-  }, [])
-
-  const handleRecordClick = () => {
-    if (isRecording) {
-      stopRecording()
-    } else {
-      startRecording()
-    }
-  }
-
-  const togglePlayback = () => {
-    if (!audioElRef.current) return
-    if (audioElRef.current.paused) {
-      // Start playback from the trimmed beginning
-      audioElRef.current.currentTime = leadingSilenceRef.current
-      audioElRef.current.play().catch(() => {})
-      startRAF()
-    } else {
-      audioElRef.current.pause()
-    }
-  }
-
-  const updatePlayhead = (progress: number) => {
-    if (!playheadRef.current) return
-    playheadRef.current.style.left = `${(progress * 100).toFixed(4)}%`
-  }
-
-  const startRAF = () => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    const step = () => {
-      if (audioElRef.current && !audioElRef.current.paused && duration != null) {
-        const effectiveTime = Math.max(0, audioElRef.current.currentTime - leadingSilenceRef.current)
-        const progress = duration > 0 ? effectiveTime / duration : 0
-        updatePlayhead(Math.min(1, Math.max(0, progress)))
-        rafRef.current = requestAnimationFrame(step)
-      }
-    }
-    rafRef.current = requestAnimationFrame(step)
-  }
-
-  const drawWaveform = useCallback(() => {
+  const drawWaveform = () => {
     const audioBuf = audioBufferRef.current
     const canvas = canvasRef.current
     const wrapper = waveformContainerRef.current
@@ -321,14 +202,150 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
     
     setReady(true)
     updatePlayhead(0)
-  }, [setReady])
+  }
+
+  const finalizeRecording = useCallback(async () => {
+    setIsRecording(false)
+    clearTimer()
+    const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+    chunksRef.current = []
+    const url = URL.createObjectURL(blob)
+    objectUrlRef.current = url
+    setAudioUrl(url)
+    try {
+      // Get sample rate + channels
+      const audioCtx = audioCtxRef.current ?? new (window.AudioContext || (window as any).webkitAudioContext)();
+      if (!audioCtxRef.current) audioCtxRef.current = audioCtx;
+
+      const arrayBuf = await blob.arrayBuffer()
+      const audioBuf = await audioCtx.decodeAudioData(arrayBuf)
+      // Store the audio buffer for waveform processing
+      audioBufferRef.current = audioBuf
+      const rec: Recording = { blob, url, sampleRate: audioBuf.sampleRate, numChannels: audioBuf.numberOfChannels }
+      onRecorded?.(rec)
+      // Prepare hidden audio element for playback control
+      if (!audioElRef.current) {
+        audioElRef.current = new Audio()
+      }
+      audioElRef.current.src = url
+      audioElRef.current.onplay = () => setIsPlaying(true)
+      audioElRef.current.onpause = () => setIsPlaying(false)
+      audioElRef.current.onended = () => {
+        setIsPlaying(false)
+        updatePlayhead(0)
+      }
+      audioElRef.current.onerror = (e) => {
+        console.error("Audio element error:", e);
+        setError("An error occurred during audio playback.");
+      };
+      drawWaveform()
+    } catch (e) {
+      // Non-fatal if decode fails
+      setError('Failed to decode audio metadata')
+    }
+
+    // Keep stream alive for next recording - don't release tracks
+    mediaRecorderRef.current = null
+  }, [onRecorded])
+
+  const startRecording = useCallback(async () => {
+    if (!streamRef.current) {
+      setError('Microphone not ready')
+      return
+    }
+    
+    setError(null)
+    destroyWaveform()
+    setAudioUrl(null)
+    setDuration(null)
+    setIsPlaying(false)
+    leadingSilenceRef.current = 0
+    chunksRef.current = []
+    
+    try {
+      const mediaRecorder = new MediaRecorder(streamRef.current)
+      mediaRecorderRef.current = mediaRecorder
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data)
+      }
+      mediaRecorder.onstop = () => {
+        finalizeRecording()
+      }
+      mediaRecorder.onerror = (e) => {
+        setError(e.error?.message || 'Recording error')
+        setIsRecording(false)
+      }
+      mediaRecorder.start()
+      setIsRecording(true)
+      // Auto stop at maxSeconds
+      timerRef.current = window.setTimeout(() => {
+        if (mediaRecorder.state !== 'inactive') mediaRecorder.stop()
+      }, maxSeconds * 1000)
+    } catch (e: any) {
+      setError(e?.message || 'Recording failed')
+      setIsRecording(false)
+    }
+  }, [finalizeRecording, maxSeconds])
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop()
+    }
+  }, [])
+
+  const handleRecordClick = () => {
+    if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+    if (isRecording) {
+      stopRecording()
+    } else {
+      startRecording()
+    }
+  }
+
+  const togglePlayback = () => {
+    if (!audioElRef.current) return
+    if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+    if (audioElRef.current.paused) {
+      // Start playback from the trimmed beginning
+      audioElRef.current.currentTime = leadingSilenceRef.current
+      audioElRef.current.play().catch((e) => {
+        console.error('Playback failed:', e)
+        setError('Playback failed. It might be blocked by the browser. Please try interacting with the page again.')
+      })
+      startRAF()
+    } else {
+      audioElRef.current.pause()
+    }
+  }
+
+  const updatePlayhead = (progress: number) => {
+    if (!playheadRef.current) return
+    playheadRef.current.style.left = `${(progress * 100).toFixed(4)}%`
+  }
+
+  const startRAF = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    const step = () => {
+      if (audioElRef.current && !audioElRef.current.paused && duration != null) {
+        const effectiveTime = Math.max(0, audioElRef.current.currentTime - leadingSilenceRef.current)
+        const progress = duration > 0 ? effectiveTime / duration : 0
+        updatePlayhead(Math.min(1, Math.max(0, progress)))
+        rafRef.current = requestAnimationFrame(step)
+      }
+    }
+    rafRef.current = requestAnimationFrame(step)
+  }
 
   // Resize handling
   useEffect(() => {
     const onResize = () => drawWaveform()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [drawWaveform])
+  }, [])
 
   const mixToMono = (buf: AudioBuffer) => {
     const chData = [] as Float32Array[]
@@ -388,7 +405,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
         {isRecording && (
           <div className="flex flex-col items-center gap-1 text-center text-xs text-red-600 dark:text-red-400 pt-8">
             <div className="h-3 w-3 animate-fast-blink rounded-full bg-green-600 dark:bg-green-400" />
-            <p>Recording… (max {maxSeconds}s)</p>
+            <p>Recording… (max ${maxSeconds}s)</p>
           </div>
         )}
         <canvas ref={canvasRef} className={`absolute left-0 top-0 h-full w-full ${ready && audioUrl ? 'opacity-100' : 'opacity-0 transition-opacity'} pointer-events-none`} />
