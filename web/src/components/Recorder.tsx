@@ -19,7 +19,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
   const [error, setError] = useState<string | null>(null)
   const [duration, setDuration] = useState<number | null>(null)
   const [ready, setReady] = useState(false)
-  const [micReady, setMicReady] = useState(false)
+  const [requestingMic, setRequestingMic] = useState(false)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -283,18 +283,19 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
       audioCtxRef.current.resume();
     }
     
-    // If microphone is not ready, request access first
-    if (!micReady && !streamRef.current) {
+    // If microphone stream is not available, request access first
+    if (!streamRef.current) {
       try {
         setError(null)
+        setRequestingMic(true)
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
         streamRef.current = stream
-        setMicReady(true)
+        setRequestingMic(false)
         // Don't start recording immediately, user needs to click again
         return
       } catch (e: any) {
         setError(`Microphone access denied: ${e?.message || 'Unknown error'}`)
-        setMicReady(false)
+        setRequestingMic(false)
         return
       }
     }
@@ -368,10 +369,11 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
           <button
             type="button"
               onClick={handleRecordClick}
-              className={`${showRedGlow && !audioUrl ? 'red-glow-on-start red-glow-active' : ''} relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${isRecording ? 'bg-green-600 hover:bg-green-500 focus:ring-green-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
+              disabled={requestingMic}
+              className={`${showRedGlow && !audioUrl ? 'red-glow-on-start red-glow-active' : ''} relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? 'bg-green-600 hover:bg-green-500 focus:ring-green-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
               aria-pressed={isRecording}
           >
-            {isRecording ? 'Stop' : audioUrl ? 'Re-record' : 'Record'}
+            {requestingMic ? 'Requesting mic...' : isRecording ? 'Stop' : audioUrl ? 'Re-record' : 'Record'}
           </button>
           {audioUrl && (
             <button
