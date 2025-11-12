@@ -5,21 +5,21 @@ type Props = {
   onRecorded?: (rec: Recording) => void
   maxSeconds?: number
   extraButton?: React.ReactNode
-  showRedGlow?: boolean
   centerContent?: React.ReactNode
 }
 
 // Single record button component with post-record waveform + playback controls.
 // Press record -> captures up to maxSeconds (default 10) or until stopped.
 // After recording, waveform + play/pause shown. Press record again to discard and start fresh.
-const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, showRedGlow = false, centerContent }) => {
+const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, centerContent }) => {
   const [isRecording, setIsRecording] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [duration, setDuration] = useState<number | null>(null)
   const [ready, setReady] = useState(false)
-  const [micReady, setMicReady] = useState(false)
+  const [requestingMic, setRequestingMic] = useState(false)
+  const [micGranted, setMicGranted] = useState(false)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -56,21 +56,6 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
   }
 
   useEffect(() => {
-    // Request microphone access on component mount
-    const initMicrophone = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        streamRef.current = stream
-        setMicReady(true)
-        setError(null)
-      } catch (e: any) {
-        setError(`Microphone access denied: ${e?.message || 'Unknown error'}`)
-        setMicReady(false)
-      }
-    }
-    
-    initMicrophone()
-    
     return () => {
       // component unmount cleanup
       clearTimer()
@@ -293,10 +278,29 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
     }
   }, [])
 
-  const handleRecordClick = () => {
+  const handleRecordClick = async () => {
     if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
       audioCtxRef.current.resume();
     }
+    
+    // If microphone stream is not available, request access first
+    if (!streamRef.current) {
+      try {
+        setError(null)
+        setRequestingMic(true)
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        streamRef.current = stream
+        setMicGranted(true)
+        setRequestingMic(false)
+        // Don't start recording immediately, user needs to click again
+        return
+      } catch (e: any) {
+        setError(`Microphone access denied: ${e?.message || 'Unknown error'}`)
+        setRequestingMic(false)
+        return
+      }
+    }
+    
     if (isRecording) {
       stopRecording()
     } else {
@@ -360,17 +364,23 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
   }
 
   return (
-    <div className="space-y-4">
+        <div className="space-y-4">
   <div className="relative flex items-center gap-4 h-14 md:h-16">
         <div className="flex items-center gap-4 flex-shrink-0">
           <button
             type="button"
               onClick={handleRecordClick}
-              disabled={!micReady}
-              className={`${showRedGlow && !audioUrl ? 'red-glow-on-start red-glow-active' : ''} relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? 'bg-green-600 hover:bg-green-500 focus:ring-green-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
+              disabled={requestingMic}
+              className={`relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                isRecording
+                  ? 'red-glow-record-button focus:ring-red-600'
+                  : !micGranted
+                  ? 'yellow-glow-button focus:ring-yellow-600'
+                  : 'green-glow-record-button focus:ring-green-600'
+              }`}
               aria-pressed={isRecording}
           >
-            {!micReady ? 'Requesting mic...' : isRecording ? 'Stop' : audioUrl ? 'Re-record' : 'Record'}
+            {requestingMic ? 'Requesting mic...' : isRecording ? 'Stop' : !micGranted ? 'Grant microphone permission' : audioUrl ? 'Re-record' : 'Record'}
           </button>
           {audioUrl && (
             <button
@@ -399,7 +409,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
       >
         {(!audioUrl && !isRecording) && (
           <p className="select-none text-center text-xs text-slate-500 dark:text-slate-400 pt-12">
-            {micReady ? `Ready to record (max ${maxSeconds}s)` : 'Requesting microphone access...'}
+            Ready to record (max {maxSeconds}s)
           </p>
         )}
         {isRecording && (
