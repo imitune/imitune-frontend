@@ -264,9 +264,9 @@ function App() {
             showRedGlow={!hasRecorded}
             centerContent={
               <>
-                <h2 className="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight">Simply imitate the sound you're looking for 🎙️</h2>
+                <h2 className="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight">Imitate the sound that's in your mind 🎙️</h2>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span className="font-bold">Stuck?</span> Try <em>explosion</em> 💥, <em>crow</em> 🐦‍⬛, or <em>horn</em> 🚗
+                  <span className="font-bold">Stuck?</span> Try <em>boooom</em> 💥, <em>kraa kraa</em> 🐦‍⬛, or <em>beep beep</em> 🚗
                 </p>
                 {/* Removed transient processing text to avoid layout shift */}
               </>

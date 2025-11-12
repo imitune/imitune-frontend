@@ -5,14 +5,13 @@ type Props = {
   onRecorded?: (rec: Recording) => void
   maxSeconds?: number
   extraButton?: React.ReactNode
-  showRedGlow?: boolean
   centerContent?: React.ReactNode
 }
 
 // Single record button component with post-record waveform + playback controls.
 // Press record -> captures up to maxSeconds (default 10) or until stopped.
 // After recording, waveform + play/pause shown. Press record again to discard and start fresh.
-const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, showRedGlow = false, centerContent }) => {
+const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, centerContent }) => {
   const [isRecording, setIsRecording] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
@@ -20,6 +19,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
   const [duration, setDuration] = useState<number | null>(null)
   const [ready, setReady] = useState(false)
   const [requestingMic, setRequestingMic] = useState(false)
+  const [micGranted, setMicGranted] = useState(false)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -290,6 +290,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
         setRequestingMic(true)
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
         streamRef.current = stream
+        setMicGranted(true)
         setRequestingMic(false)
         // Don't start recording immediately, user needs to click again
         return
@@ -363,17 +364,23 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, s
   }
 
   return (
-    <div className="space-y-4">
+        <div className="space-y-4">
   <div className="relative flex items-center gap-4 h-14 md:h-16">
         <div className="flex items-center gap-4 flex-shrink-0">
           <button
             type="button"
               onClick={handleRecordClick}
               disabled={requestingMic}
-              className={`${showRedGlow && !audioUrl ? 'red-glow-on-start red-glow-active' : ''} relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isRecording ? 'bg-green-600 hover:bg-green-500 focus:ring-green-600' : 'bg-slate-900 hover:bg-slate-800 focus:ring-slate-900'}`}
+              className={`relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                isRecording
+                  ? 'red-glow-record-button focus:ring-red-600'
+                  : !micGranted
+                  ? 'yellow-glow-button focus:ring-yellow-600'
+                  : 'green-glow-record-button focus:ring-green-600'
+              }`}
               aria-pressed={isRecording}
           >
-            {requestingMic ? 'Requesting mic...' : isRecording ? 'Stop' : audioUrl ? 'Re-record' : 'Record'}
+            {requestingMic ? 'Requesting mic...' : isRecording ? 'Stop' : !micGranted ? 'Grant microphone permission' : audioUrl ? 'Re-record' : 'Record'}
           </button>
           {audioUrl && (
             <button
