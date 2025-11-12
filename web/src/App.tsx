@@ -20,6 +20,7 @@ function App() {
   const [ratingsSubmitted, setRatingsSubmitted] = useState(false)
   const [hasConsent, setHasConsent] = useState(false)
   const [showConsent, setShowConsent] = useState(false)
+  const [showAbout, setShowAbout] = useState(false)
   const [pendingRatingsData, setPendingRatingsData] = useState<{ urls: string[]; ratings: (-1 | 0 | 1)[] } | null>(null)
 
   const [session, setSession] = useState<any>(null)
@@ -362,28 +363,62 @@ function App() {
           </div>
         </div>
       )}
-      {/* Data sharing toggle */}
+      {/* About Modal */}
+      {showAbout && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAbout(false)} aria-hidden="true" />
+          <div role="dialog" aria-modal="true" aria-labelledby="about-title" className="relative z-10 w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-lg">
+        <h3 id="about-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">About this project</h3>
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+          thatsoundslike.me is built and maintained by{" "}
+          <a href="https://chrispla.me" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 underline">Christos Plachouras</a>,{" "}
+          <a href="https://uk.linkedin.com/in/adibh" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 underline">Aditya Bhattacharjee</a>, and{" "}
+          <a href="https://uk.linkedin.com/in/mimbres-101" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 underline">Sungkyun Chang</a>, researchers at Queen Mary University of London.<br /><br />
+          After participating in a challenge to build machine learning models for matching vocal imitations with target sounds, we thought of making this website as a fun, non-commercial application of the technology, that could help people discover new sounds and contribute to improving the underlying models.<br /><br />
+          We designed this website with privacy in mind: unless you specifically agree to take part in our study, your recording is processed and stored ONLY on your device, not our servers. This is possible by having developed a tiny model that can run entirely in your browser with ONNX.
+        </p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+          We hope you enjoy playing around with it! For feedback or questions, email c dot plachouras at qmul dot ac dot uk.
+        </p>
+        <div className="flex justify-end">
+          <button type="button" onClick={() => setShowAbout(false)} className="rounded-md px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">Close</button>
+        </div>
+          </div>
+        </div>
+      )}
+      {/* Bottom-right actions: About + Data sharing toggle */}
       <div className="fixed bottom-4 right-4 z-40">
-        <button
-          type="button"
-          onClick={() => {
-            if (hasConsent) {
-              // Turning off
-              setHasConsent(false)
-              try { localStorage.removeItem('imitune_feedback_consent_v1') } catch {}
-            } else {
-              // Turning on triggers modal for explicit acceptance
-              setPendingRatingsData(null)
-              setShowConsent(true)
-            }
-          }}
-          className={`group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-sm backdrop-blur bg-white/80 dark:bg-slate-800/70 border-slate-300 dark:border-slate-600 transition-colors ${hasConsent ? 'text-green-600 dark:text-green-400' : 'text-slate-600 dark:text-slate-300'}`}
-          aria-pressed={hasConsent}
-          aria-label="Toggle data sharing consent"
-        >
-          <span className={`h-2.5 w-2.5 rounded-full ${hasConsent ? 'bg-green-500' : 'bg-slate-400 dark:bg-slate-500'}`} />
-          {hasConsent ? 'Data sharing: ON' : 'Data sharing: OFF'}
-        </button>
+        <div className="flex flex-col items-end gap-3">
+          <button
+            type="button"
+            onClick={() => setShowAbout(true)}
+            className="group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-sm backdrop-blur bg-white/80 dark:bg-slate-800/70 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"
+            aria-label="About this project"
+          >
+            About this project
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (hasConsent) {
+                // Turning off
+                setHasConsent(false)
+                try { localStorage.removeItem('imitune_feedback_consent_v1') } catch {}
+              } else {
+                // Turning on triggers modal for explicit acceptance
+                setPendingRatingsData(null)
+                setShowConsent(true)
+              }
+            }}
+            className={`group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-sm backdrop-blur bg-white/80 dark:bg-slate-800/70 border-slate-300 dark:border-slate-600 transition-colors ${hasConsent ? 'text-green-600 dark:text-green-400' : 'text-slate-600 dark:text-slate-300'}`}
+            aria-pressed={hasConsent}
+            aria-label="Toggle data sharing consent"
+          >
+            <span className={`h-2.5 w-2.5 rounded-full ${hasConsent ? 'bg-green-500' : 'bg-slate-400 dark:bg-slate-500'}`} />
+            {hasConsent ? 'Data sharing: ON' : 'Data sharing: OFF'}
+          </button>
+        </div>
       </div>
       </div>
     </>
