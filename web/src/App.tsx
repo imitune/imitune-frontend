@@ -14,7 +14,6 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [embedding, setEmbedding] = useState<Float32Array | null>(null)
   const [processingEmbedding, setProcessingEmbedding] = useState(false)
-  const [hasRecorded, setHasRecorded] = useState(false)
   const [hasValidAudio, setHasValidAudio] = useState(false)
   const [lastRecordingBlob, setLastRecordingBlob] = useState<Blob | null>(null)
   const [submittingRatings, setSubmittingRatings] = useState(false)
@@ -127,7 +126,6 @@ function App() {
     setError(null)
     setResults([])
     setEmbedding(null)
-    setHasRecorded(true) // Mark that user has recorded
     setHasValidAudio(false) // Reset audio validation
     setRatingsSubmitted(false)
     setLastRecordingBlob(rec.blob)
@@ -299,12 +297,11 @@ function App() {
         <section className="mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-6 shadow-sm backdrop-blur-sm">
           <Recorder
             onRecorded={onRecorded}
-            showRedGlow={!hasRecorded}
             centerContent={
               <>
-                <h2 className="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight">Simply imitate the sound you're looking for 🎙️</h2>
+                <h2 className="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight">Imitate the sound that's in your mind 🎙️</h2>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span className="font-bold">Stuck?</span> Try <em>explosion</em> 💥, <em>crow</em> 🐦‍⬛, or <em>horn</em> 🚗
+                  <span className="font-bold">Stuck?</span> Try <em>boooom</em> 💥, <em>kraa kraa</em> 🐦‍⬛, or <em>beep beep</em> 🚗
                 </p>
                 {/* Removed transient processing text to avoid layout shift */}
               </>

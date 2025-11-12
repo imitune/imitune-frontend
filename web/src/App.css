@@ -146,6 +146,144 @@ html, body, #root {
 .green-glow-button:disabled:after { background:#64748b; }
 @keyframes green-glowing { 0%{background-position:0 0;} 50%{background-position:250% 0;} 100%{background-position:0 0;} }
 
+/* Yellow glow for microphone permission request */
+.yellow-glow-button {
+  position: relative;
+  z-index: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.yellow-glow-button:before {
+  content: '';
+  background: linear-gradient(45deg, rgb(253, 224, 71), rgb(253, 185, 19), rgb(251, 146, 60), rgb(253, 224, 71));
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background-size: 400%;
+  z-index: -1;
+  filter: blur(5px);
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  animation: yellow-glowing 3s linear infinite;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+  border-radius: 9999px; /* matches rounded-full */
+}
+
+.yellow-glow-button:after {
+  z-index: -1;
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #0f172a; /* slate-900 */
+  left: 0;
+  top: 0;
+  border-radius: 9999px; /* matches rounded-full */
+}
+
+.yellow-glow-button:disabled:before {
+  opacity: 0;
+}
+
+@keyframes yellow-glowing {
+  0% { background-position: 0 0; }
+  50% { background-position: 400% 0; }
+  100% { background-position: 0 0; }
+}
+
+/* Green glow for record button ready state */
+.green-glow-record-button {
+  position: relative;
+  z-index: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.green-glow-record-button:before {
+  content: '';
+  background: linear-gradient(45deg, rgb(74, 222, 128), rgb(34, 197, 94), rgb(22, 163, 74), rgb(74, 222, 128));
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background-size: 400%;
+  z-index: -1;
+  filter: blur(5px);
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  animation: green-record-glowing 3s linear infinite;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+  border-radius: 9999px; /* matches rounded-full */
+}
+
+.green-glow-record-button:after {
+  z-index: -1;
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #16a34a; /* green-600 */
+  left: 0;
+  top: 0;
+  border-radius: 9999px; /* matches rounded-full */
+}
+
+.green-glow-record-button:disabled:before {
+  opacity: 0;
+}
+
+@keyframes green-record-glowing {
+  0% { background-position: 0 0; }
+  50% { background-position: 400% 0; }
+  100% { background-position: 0 0; }
+}
+
+/* Red glow for recording state */
+.red-glow-record-button {
+  position: relative;
+  z-index: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.red-glow-record-button:before {
+  content: '';
+  background: linear-gradient(45deg, rgb(239, 68, 68), rgb(220, 38, 38), rgb(185, 28, 28), rgb(239, 68, 68));
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background-size: 400%;
+  z-index: -1;
+  filter: blur(5px);
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  animation: red-record-glowing 3s linear infinite;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+  border-radius: 9999px; /* matches rounded-full */
+}
+
+.red-glow-record-button:after {
+  z-index: -1;
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #dc2626; /* red-600 */
+  left: 0;
+  top: 0;
+  border-radius: 9999px; /* matches rounded-full */
+}
+
+.red-glow-record-button:disabled:before {
+  opacity: 0;
+}
+
+@keyframes red-record-glowing {
+  0% { background-position: 0 0; }
+  50% { background-position: 400% 0; }
+  100% { background-position: 0 0; }
+}
+
 /* Red glow effect for record button */
 .red-glow-on-start {
   position: relative;
