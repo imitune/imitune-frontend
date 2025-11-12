@@ -91,6 +91,36 @@ function App() {
     }
   }, [modelUrl, apiUrl, feedbackUrl, backendBase, rawApiSearchUrl])
 
+  // Process embedding when session becomes available and we have valid audio but no embedding yet
+  useEffect(() => {
+    const processDelayedEmbedding = async () => {
+      if (session && hasValidAudio && !embedding && lastRecordingBlob && !processingEmbedding) {
+        console.log('Session now available, processing pending recording...')
+        try {
+          setProcessingEmbedding(true)
+          const mono = await audioBlobToMonoFloat32(lastRecordingBlob, 32000)
+          const { vector } = await runEmbedding(session, mono)
+          setEmbedding(vector)
+          console.log('Delayed embedding extracted:', {
+            length: vector.length,
+            first5: Array.from(vector.slice(0, 5)),
+            stats: {
+              min: Math.min(...vector),
+              max: Math.max(...vector),
+              mean: vector.reduce((a, b) => a + b, 0) / vector.length
+            }
+          })
+        } catch (e) {
+          console.error('Error processing delayed embedding:', e)
+          setError(`Failed to process embedding: ${String(e)}`)
+        } finally {
+          setProcessingEmbedding(false)
+        }
+      }
+    }
+    void processDelayedEmbedding()
+  }, [session, hasValidAudio, embedding, lastRecordingBlob, processingEmbedding])
+
   const onRecorded = async (rec: Recording) => {
     console.log('onRecorded called with:', rec)
     setError(null)
@@ -98,52 +128,62 @@ function App() {
     setEmbedding(null)
     setHasValidAudio(false) // Reset audio validation
     setRatingsSubmitted(false)
-    setLastRecordingBlob(rec.blob)    // Process embedding immediately after recording
-    if (session) {
-      console.log('Session available, processing embedding...')
-      try {
-        setProcessingEmbedding(true)
-        console.log('Converting audio blob to mono float32...')
-        const mono = await audioBlobToMonoFloat32(rec.blob, 32000) // Downsample to 32kHz
-        console.log('Audio converted, mono length:', mono.length)
-        
-        // Check if audio has meaningful content
-        const threshold = 0.01
-        let hasContent = false
-        for (let i = 0; i < mono.length; i++) {
-          if (Math.abs(mono[i]) > threshold) {
-            hasContent = true
-            break
-          }
+    setLastRecordingBlob(rec.blob)
+    
+    // Always validate audio content first, regardless of session state
+    try {
+      console.log('Validating audio content...')
+      const mono = await audioBlobToMonoFloat32(rec.blob, 32000) // Downsample to 32kHz
+      console.log('Audio converted, mono length:', mono.length)
+      
+      // Check if audio has meaningful content
+      const threshold = 0.01
+      let hasContent = false
+      for (let i = 0; i < mono.length; i++) {
+        if (Math.abs(mono[i]) > threshold) {
+          hasContent = true
+          break
         }
-        
-        if (!hasContent) {
-          console.log('Audio appears to be empty/silent')
-          setError('Recording appears to be empty or too quiet. Please try recording again.')
-          return
-        }
-        
-        console.log('Audio has content, running embedding with 32kHz sample rate')
-        const { vector } = await runEmbedding(session, mono)
-        setEmbedding(vector)
-        setHasValidAudio(true) // Mark audio as valid
-  console.log('Embedding extracted:', {
-          length: vector.length,
-          first5: Array.from(vector.slice(0, 5)),
-          stats: {
-            min: Math.min(...vector),
-            max: Math.max(...vector),
-            mean: vector.reduce((a, b) => a + b, 0) / vector.length
-          }
-        })
-      } catch (e) {
-        console.error('Error processing embedding:', e)
-        setError(`Failed to process embedding: ${String(e)}`)
-      } finally {
-        setProcessingEmbedding(false)
       }
-    } else {
-      console.log('No session available, skipping embedding processing')
+      
+      if (!hasContent) {
+        console.log('Audio appears to be empty/silent')
+        setError('Recording appears to be empty or too quiet. Please try recording again.')
+        return
+      }
+      
+      console.log('Audio has content, marked as valid')
+      setHasValidAudio(true) // Mark audio as valid immediately after validation
+      
+      // Process embedding if session is available
+      if (session) {
+        console.log('Session available, processing embedding...')
+        try {
+          setProcessingEmbedding(true)
+          console.log('Running embedding with 32kHz sample rate')
+          const { vector } = await runEmbedding(session, mono)
+          setEmbedding(vector)
+          console.log('Embedding extracted:', {
+            length: vector.length,
+            first5: Array.from(vector.slice(0, 5)),
+            stats: {
+              min: Math.min(...vector),
+              max: Math.max(...vector),
+              mean: vector.reduce((a, b) => a + b, 0) / vector.length
+            }
+          })
+        } catch (e) {
+          console.error('Error processing embedding:', e)
+          setError(`Failed to process embedding: ${String(e)}`)
+        } finally {
+          setProcessingEmbedding(false)
+        }
+      } else {
+        console.log('Session not yet available, will process embedding when session loads')
+      }
+    } catch (e) {
+      console.error('Error validating audio:', e)
+      setError(`Failed to process audio: ${String(e)}`)
     }
   }
 
