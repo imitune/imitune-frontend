@@ -347,102 +347,101 @@ function App() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={cancelConsent} aria-hidden="true" />
           <div role="dialog" aria-modal="true" aria-labelledby="consent-title" className="relative z-10 w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-lg max-h-[90vh] overflow-y-auto">
-            <h3 id="consent-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">Research Study Consent</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 text-left">
-              By default, all recordings and feedback exist solely on your device.<br />
-              
-              However, we are running a study to understand how to improve these models, which involves collecting anonymised user recordings and ratings. These would be used solely for non-commercial research purposes.<br />
+        <h3 id="consent-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">Research Study Consent</h3>
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 text-left">
+          By default, all recordings and feedback you record exist exclusively on your device, not our servers.<br /><br />
+          
+          However, we are running a study to understand how to improve these models, which involves collecting anonymised user recordings and ratings. These would be used solely for <u>non-commercial</u> research purposes.<br /><br />
 
-              We would sincerely appreciate it if you choose to participate by enabling data sharing. You can read all study details and requirements in the participant information sheet and consent form below.
-            </p>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 text-left">
-              Find out more about this project{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setShowConsent(false)
-                  setShowAbout(true)
-                }}
-                className="text-sky-600 dark:text-sky-400 underline hover:text-sky-700 dark:hover:text-sky-300"
-              >
-                here
-              </button>.
-            </p>
-            <div className="mb-4 space-y-2">
-              <a 
-                href={`${import.meta.env.BASE_URL}participant_information_sheet.pdf`}
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block text-sm text-sky-600 dark:text-sky-400 underline hover:text-sky-700 dark:hover:text-sky-300"
-              >
-                Participant Information Sheet
-              </a>
-              <a 
-                href={`${import.meta.env.BASE_URL}consent_form.pdf`}
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block text-sm text-sky-600 dark:text-sky-400 underline hover:text-sky-700 dark:hover:text-sky-300"
-              >
-                Consent Form
-              </a>
-            </div>
-            <div className="mb-4 space-y-3 border-t border-slate-200 dark:border-slate-700 pt-4">
-              <label className="flex items-start justify-between gap-3 cursor-pointer">
-                <span className="text-sm text-slate-700 dark:text-slate-300 text-left flex-1">
-                  I confirm that I have read and understood both the Participant Information Sheet and the Consent Form.
-                </span>
-                <input
-                  type="checkbox"
-                  checked={hasReadDocuments}
-                  onChange={(e) => setHasReadDocuments(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400"
-                />
-              </label>
-              <label className="flex items-start justify-between gap-3 cursor-pointer">
-                <span className="text-sm text-slate-700 dark:text-slate-300 text-left flex-1">
-                  I agree to the terms outlined in the Consent Form and consent to participate in this research study.
-                </span>
-                <input
-                  type="checkbox"
-                  checked={hasAgreedToConsent}
-                  onChange={(e) => setHasAgreedToConsent(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400"
-                />
-              </label>
-            </div>
-            <div className="flex justify-end gap-3">
-              <button type="button" onClick={cancelConsent} className="rounded-md px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">Cancel</button>
-              <button 
-                type="button" 
-                onClick={acceptConsentAndSubmit}
-                disabled={!hasReadDocuments || !hasAgreedToConsent}
-                className="rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ 
-                  backgroundColor: hasReadDocuments && hasAgreedToConsent ? 'rgb(143, 177, 120)' : 'rgb(203, 213, 225)', 
-                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
-                }}
-                onMouseEnter={(e) => {
-                  if (hasReadDocuments && hasAgreedToConsent) {
-                    e.currentTarget.style.backgroundColor = 'rgb(133, 167, 110)'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (hasReadDocuments && hasAgreedToConsent) {
-                    e.currentTarget.style.backgroundColor = 'rgb(143, 177, 120)'
-                  } else {
-                    e.currentTarget.style.backgroundColor = 'rgb(203, 213, 225)'
-                  }
-                }}
-                onFocus={(e) => {
-                  if (hasReadDocuments && hasAgreedToConsent) {
-                    e.currentTarget.style.boxShadow = '0 0 0 2px rgba(143, 177, 120, 0.5)'
-                  }
-                }}
-                onBlur={(e) => e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)'}
-              >
-                Agree & Submit
-              </button>
-            </div>
+         <b>We would sincerely appreciate it if you choose to contribute to the study by enabling data sharing!</b> <br /><br /> Detailed information about the study can be found in the{" "}
+          <a
+            href={`${import.meta.env.BASE_URL}participant_information_sheet.pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sky-600 dark:text-sky-400 underline hover:text-sky-700 dark:hover:text-sky-300"
+          >
+            Participant Information Sheet
+          </a>{" "}
+          and the{" "}
+          <a
+            href={`${import.meta.env.BASE_URL}consent_form.pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sky-600 dark:text-sky-400 underline hover:text-sky-700 dark:hover:text-sky-300"
+          >
+            Consent Form
+          </a>
+          . More information about us and this project can be found{" "}
+          <button
+            type="button"
+            onClick={() => {
+          setShowConsent(false)
+          setShowAbout(true)
+            }}
+            className="inline text-sky-600 dark:text-sky-400 underline hover:text-sky-700 dark:hover:text-sky-300"
+          >
+            here
+          </button>
+           - tl;dr we're students and researchers at Queen Mary University of London, and we've built this as a fun tool to help with open-source, non-commercial research!
+        </p>
+
+        <div className="mb-4 space-y-3 border-t border-slate-200 dark:border-slate-700 pt-4">
+          <label className="flex items-start justify-between gap-3 cursor-pointer">
+            <span className="text-sm text-slate-700 dark:text-slate-300 text-left flex-1">
+          I confirm that I have read and understood both the Participant Information Sheet and the Consent Form.
+            </span>
+            <input
+          type="checkbox"
+          checked={hasReadDocuments}
+          onChange={(e) => setHasReadDocuments(e.target.checked)}
+          className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400"
+            />
+          </label>
+          <label className="flex items-start justify-between gap-3 cursor-pointer">
+            <span className="text-sm text-slate-700 dark:text-slate-300 text-left flex-1">
+          I agree to the terms outlined in the Consent Form and consent to participate in this research study.
+            </span>
+            <input
+          type="checkbox"
+          checked={hasAgreedToConsent}
+          onChange={(e) => setHasAgreedToConsent(e.target.checked)}
+          className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400"
+            />
+          </label>
+        </div>
+        <div className="flex justify-end gap-3">
+          <button type="button" onClick={cancelConsent} className="rounded-md px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">Cancel</button>
+          <button 
+            type="button" 
+            onClick={acceptConsentAndSubmit}
+            disabled={!hasReadDocuments || !hasAgreedToConsent}
+            className="rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ 
+          backgroundColor: hasReadDocuments && hasAgreedToConsent ? 'rgb(143, 177, 120)' : 'rgb(203, 213, 225)', 
+          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+            }}
+            onMouseEnter={(e) => {
+          if (hasReadDocuments && hasAgreedToConsent) {
+            e.currentTarget.style.backgroundColor = 'rgb(133, 167, 110)'
+          }
+            }}
+            onMouseLeave={(e) => {
+          if (hasReadDocuments && hasAgreedToConsent) {
+            e.currentTarget.style.backgroundColor = 'rgb(143, 177, 120)'
+          } else {
+            e.currentTarget.style.backgroundColor = 'rgb(203, 213, 225)'
+          }
+            }}
+            onFocus={(e) => {
+          if (hasReadDocuments && hasAgreedToConsent) {
+            e.currentTarget.style.boxShadow = '0 0 0 2px rgba(143, 177, 120, 0.5)'
+          }
+            }}
+            onBlur={(e) => e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)'}
+          >
+            Agree & Submit
+          </button>
+        </div>
           </div>
         </div>
       )}
@@ -458,10 +457,11 @@ function App() {
           <a href="https://uk.linkedin.com/in/adibh" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 underline">Aditya Bhattacharjee</a>, and{" "}
           <a href="https://uk.linkedin.com/in/mimbres-101" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 underline">Sungkyun Chang</a>, researchers at Queen Mary University of London.<br /><br />
           After participating in a challenge to build machine learning models for matching vocal imitations with target sounds, we thought of making this website as a fun, non-commercial application of the technology, that could help people discover new sounds and contribute to improving the underlying models.<br /><br />
-          We designed this website with privacy in mind: unless you specifically agree to take part in our study, your recording is processed and stored ONLY on your device, not our servers. This is possible by having developed a tiny model that can run entirely in your browser with ONNX.
+          We designed this website with privacy in mind: unless you specifically agree to take part in our study, your recording is processed and stored ONLY on your device, not our servers. This is possible by having developed a tiny model that can run entirely in your browser with ONNX.<br /><br />
+          If you consent to data collection and submit likes or dislikes to returned sounds, you help us collect data to improve open-source, non-commercial query by vocal imitation models!
         </p>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-          We hope you enjoy playing around with it! For feedback or questions, email c dot plachouras at qmul dot ac dot uk.
+          We hope you enjoy playing around with the website! For feedback or questions, email c dot plachouras at qmul dot ac dot uk.
         </p>
         <div className="flex justify-end">
           <button type="button" onClick={() => setShowAbout(false)} className="rounded-md px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">Close</button>
