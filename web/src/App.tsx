@@ -279,9 +279,9 @@ function App() {
       <div className="static-bg" aria-hidden="true" />
       <div className="relative min-h-screen text-slate-900 dark:text-slate-100">
       <div className="mx-auto max-w-5xl px-4 pt-10 pb-20">
-        <header className="mb-8 flex items-center justify-between gap-4">
+  <header className="mb-8 flex flex-col items-center gap-4 text-center lg:flex-row lg:items-center lg:justify-between lg:text-left">
           <div 
-            className="flex items-center gap-4 cursor-pointer"
+            className="flex flex-col items-center gap-2 sm:flex-row sm:items-center sm:gap-4 cursor-pointer"
             onClick={() => window.location.reload()}
             role="button"
             tabIndex={0}
@@ -292,14 +292,14 @@ function App() {
               }
             }}
           >
-            <img src={soundalikeLogo} alt="soundalike logo" style={{ height: '56px' }} />
-            <h1 className="text-4xl font-bold tracking-tight" style={{ margin: 0 }}>
+            <img src={soundalikeLogo} alt="soundalike logo" className="w-auto max-w-full" style={{ height: '56px' }} />
+            <h1 className="text-4xl font-bold tracking-tight text-center sm:text-left" style={{ margin: 0 }}>
                 <span className="text-slate-500 dark:text-slate-400" style={{ fontStyle: 'normal' }}>that</span>
               <span className="text-black dark:text-white" style={{ fontStyle: 'italic' }}>soundslike</span>
               <span className="text-slate-500 dark:text-slate-400" style={{ fontStyle: 'normal' }}>.me</span>
             </h1>
           </div>
-            <div className="hidden md:block text-xl md:text-1xl text-black dark:text-slate-300 text-right">
+  <div className="hidden lg:block text-xl text-black dark:text-slate-300 text-center lg:text-right">
                 <span className="quintessential-regular" style={{ fontStyle: 'italic' }}>*Magically*  </span> search for sounds with your voice
             </div>
         </header>
@@ -317,7 +317,7 @@ function App() {
               </>
             }
             extraButton={
-              <button className={`glow-on-hover rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-50 ${embedding && hasValidAudio && !loading && !processingEmbedding && results.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !hasValidAudio || !apiUrl || processingEmbedding} onClick={onSearch}>
+              <button className={`glow-on-hover flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-base font-medium text-white hover:bg-slate-800 disabled:opacity-50 md:w-auto ${embedding && hasValidAudio && !loading && !processingEmbedding && results.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !hasValidAudio || !apiUrl || processingEmbedding} onClick={onSearch}>
                 {loading ? 'Searching…' : processingEmbedding ? 'Processing…' : 'Search ✨'}
               </button>
             }
@@ -470,12 +470,12 @@ function App() {
         </div>
       )}
       {/* Bottom-right actions: About + Data sharing toggle */}
-      <div className="fixed bottom-4 right-4 z-40">
-        <div className="flex flex-col items-end gap-3">
+  <div className="fixed bottom-4 left-1/2 z-40 flex w-full max-w-xs -translate-x-1/2 px-4 sm:left-auto sm:right-4 sm:w-auto sm:max-w-none sm:px-0 sm:translate-x-0">
+        <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:items-end">
           <button
             type="button"
             onClick={() => setShowAbout(true)}
-            className="group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-sm backdrop-blur bg-white/80 dark:bg-slate-800/70 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"
+            className="group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-sm backdrop-blur bg-white/80 dark:bg-slate-800/70 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 sm:w-auto sm:justify-start"
             aria-label="About this project"
           >
             About this project
@@ -494,7 +494,7 @@ function App() {
                 setShowConsent(true)
               }
             }}
-            className={`group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-sm backdrop-blur bg-white/80 dark:bg-slate-800/70 border-slate-300 dark:border-slate-600 transition-colors ${hasConsent ? 'text-green-600 dark:text-green-400' : 'text-slate-600 dark:text-slate-300'}`}
+            className={`group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-sm backdrop-blur bg-white/80 dark:bg-slate-800/70 border-slate-300 dark:border-slate-600 transition-colors ${hasConsent ? 'text-green-600 dark:text-green-400' : 'text-slate-600 dark:text-slate-300'} sm:w-auto sm:justify-start`}
             aria-pressed={hasConsent}
             aria-label="Toggle data sharing consent"
           >
