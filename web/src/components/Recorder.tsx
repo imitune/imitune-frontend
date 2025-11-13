@@ -364,9 +364,9 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
   }
 
   return (
-        <div className="space-y-4">
-  <div className="relative flex items-center gap-4 h-14 md:h-16">
-        <div className="flex items-center gap-4 flex-shrink-0">
+    <div className="space-y-4">
+      <div className="relative flex flex-col items-center gap-3 lg:flex-row lg:items-center lg:gap-4 lg:min-h-[4rem]">
+        <div className="flex w-full flex-wrap items-center justify-center gap-2 lg:w-auto lg:flex-nowrap lg:justify-start lg:gap-4">
           <button
             type="button"
               onClick={handleRecordClick}
@@ -396,11 +396,20 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
           )}
         </div>
         {centerContent && (
-          <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center px-2 max-w-[640px] pointer-events-none">
-            {centerContent}
+          <>
+            <div className="lg:hidden flex w-full flex-col items-center gap-1 text-center px-2">
+              {centerContent}
+            </div>
+            <div className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 max-w-[640px] flex-col items-center px-2 text-center lg:flex">
+              {centerContent}
+            </div>
+          </>
+        )}
+        {extraButton && (
+          <div className="flex w-full justify-center lg:ml-auto lg:w-auto lg:justify-end">
+            {extraButton}
           </div>
         )}
-        {extraButton && <div className="flex-shrink-0 ml-auto flex items-center">{extraButton}</div>}
       </div>
       <div
         ref={waveformContainerRef}
