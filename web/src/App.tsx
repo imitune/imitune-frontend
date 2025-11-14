@@ -341,6 +341,51 @@ function App() {
           </section>
         )}
 
+        {/* Credits Footer */}
+        <footer className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex flex-col items-center gap-8 text-center">
+            {/* Team names */}
+            <div>
+              <p className="mb-3 text-xs font-medium tracking-wider text-slate-500 dark:text-slate-400">Made with love by</p>
+              <p className="text-sm text-slate-700 dark:text-slate-300">
+                <a href="https://chrispla.me" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 hover:underline">
+                  Christos Plachouras
+                </a>
+                {", "}
+                <a href="https://uk.linkedin.com/in/adibh" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 hover:underline">
+                  Aditya Bhattacharjee
+                </a>
+                {", "}
+                <a href="https://uk.linkedin.com/in/mimbres-101" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 hover:underline">
+                  Sungkyun Chang
+                </a>
+              </p>
+              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">and supported by</p>
+            </div>
+
+            {/* Logos */}
+            <div className="flex items-center justify-center gap-8">
+              <a href="https://www.qmul.ac.uk" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-75">
+                <img 
+                  src={`${import.meta.env.BASE_URL}qmul.png`} 
+                  alt="Queen Mary University of London" 
+                  className="h-12 w-auto object-contain"
+                />
+              </a>
+              <a href="https://www.ukri.org" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-75">
+                <img 
+                  src={`${import.meta.env.BASE_URL}ukri.png`} 
+                  alt="UKRI" 
+                  className="h-12 w-auto object-contain"
+                />
+              </a>
+            </div>
+
+            {/* Copyright */}
+            <p className="text-xs text-slate-500 dark:text-slate-500">© 2025 thatsoundslike.me. All rights reserved.</p>
+          </div>
+        </footer>
+
       </div>
       {/* Consent Modal */}
       {showConsent && (
@@ -503,6 +548,7 @@ function App() {
           </button>
         </div>
       </div>
+
       </div>
     </>
   )
