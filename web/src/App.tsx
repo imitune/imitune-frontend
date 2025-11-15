@@ -352,7 +352,7 @@ function App() {
         {results.length > 0 && (
           <section className="results-enter mb-6 rounded-xl border border-slate-900 dark:border-slate-900 p-6">
             <div className="mb-4">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Matched sounds ✧♪</h2>
+            <h2 className="text-sm md:text-base font-semibold text-slate-900 dark:text-slate-100 leading-tight">Matched sounds 🔎🎶</h2>
             </div>
 
             <div className="mt-4">

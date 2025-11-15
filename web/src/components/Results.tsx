@@ -85,7 +85,7 @@ export default function Results({ results, onSubmitRatings, submitted = false, s
                   href={result.freesound_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
+                  className="text-xs text-sky-600 dark:text-sky-400 hover:underline"
                 >
                   View on Freesound ↗
                 </a>
