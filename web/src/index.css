@@ -29,9 +29,8 @@ body {
 
 /* Simple card styling (no backdrop-filter to avoid GPU cost) */
 section {
-  background: #ffffffcc;
-  box-shadow: 0 1px 4px rgba(15,23,42,0.06), 0 4px 16px -4px rgba(15,23,42,0.08);
-  border: 1px solid rgba(255,255,255,0.9);
+  background: white !important;
+  box-shadow: none !important;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -44,5 +43,5 @@ section {
       radial-gradient(circle at 60% 50%, rgba(59,116,89,0.8), rgba(59,116,89,0) 40%),
       linear-gradient(135deg, #0f1729 0%, #1a2332 30%, #1e2a3d 70%, #0a1021 100%);
   }
-  section { background: #1e293bcc; border-color: rgba(255,255,255,0.06); box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+  section { background: #1e293b !important; box-shadow: none !important; }
 }

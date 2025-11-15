@@ -404,17 +404,17 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
             <button
               type="button"
               onClick={togglePlayback}
-              className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-green-600 hover:bg-green-700 shadow-lg hover:shadow-xl transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 dark:focus:ring-offset-slate-800"
+              className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full border-2 border-green-600 bg-transparent text-green-600 hover:bg-green-50 dark:hover:bg-slate-700 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 dark:focus:ring-offset-slate-800"
               aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
             >
               {isPlaying ? (
                 /* Pause icon */
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
                 </svg>
               ) : (
                 /* Play icon */
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: '1px' }}>
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: '1px' }}>
                   <path d="M8 5v14l11-7z"/>
                 </svg>
               )}
@@ -442,7 +442,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
       {/* Waveform container with floating play button */}
       <div
         ref={waveformContainerRef}
-        className={`relative w-full overflow-hidden rounded-md border border-dashed ${audioUrl ? 'border-slate-300 dark:border-slate-600' : 'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-800`}
+        className={`relative w-full overflow-hidden rounded-md border border-slate-900 dark:border-slate-900 bg-transparent`}
         style={{height: 120}}
       >
         {(!audioUrl && !isRecording) && (
@@ -458,7 +458,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
         )}
         <canvas ref={canvasRef} className={`absolute left-0 top-0 h-full w-full ${ready && audioUrl ? 'opacity-100' : 'opacity-0 transition-opacity'} pointer-events-none`} />
         {audioUrl && ready && (
-          <div ref={playheadRef} className="pointer-events-none absolute top-0 h-full w-px bg-green-600 shadow-[0_0_2px_rgba(34,197,94,0.8)]" />
+          <div ref={playheadRef} className="pointer-events-none absolute top-0 h-full w-px bg-green-600" />
         )}
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}

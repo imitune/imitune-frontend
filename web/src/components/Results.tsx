@@ -54,7 +54,7 @@ export default function Results({ results, onSubmitRatings, submitted = false, s
               
               {soundId ? (
                 <div
-                  className="relative w-full overflow-hidden rounded border bg-white"
+                  className="relative w-full overflow-hidden rounded border border-slate-900 dark:border-slate-900 bg-transparent"
                   style={{ height: scaledHeight }}
                 >
                   <iframe
@@ -93,8 +93,7 @@ export default function Results({ results, onSubmitRatings, submitted = false, s
                   <button
                     type="button"
                     onClick={() => handleRate(idx, current === 1 ? -1 : 1)}
-                    className={`h-9 w-9 rounded-full text-sm font-semibold transition-colors border flex items-center justify-center shadow-sm ${current === 1 ? 'text-white' : 'border-slate-300 text-slate-600 hover:bg-green-100'}`}
-                    style={current === 1 ? { backgroundColor: 'rgb(143, 177, 120)', borderColor: 'rgb(133, 167, 110)', boxShadow: '0 1px 3px 0 rgba(143, 177, 120, 0.5)' } : {}}
+                    className={`h-9 w-9 rounded-full text-sm font-semibold transition-colors border-2 flex items-center justify-center ${current === 1 ? 'text-white border-green-600 bg-green-600' : 'border-slate-300 text-slate-600 bg-transparent hover:bg-green-50 dark:hover:bg-slate-700'}`}
                     aria-pressed={current === 1}
           aria-label={current === 1 ? 'Remove like' : 'Like'}
                   >
@@ -103,7 +102,7 @@ export default function Results({ results, onSubmitRatings, submitted = false, s
                   <button
                     type="button"
                     onClick={() => handleRate(idx, current === 0 ? -1 : 0)}
-                    className={`h-9 w-9 rounded-full text-sm font-semibold transition-colors border flex items-center justify-center shadow-sm ${current === 0 ? 'bg-red-200 border-red-300 text-red-800 shadow-red-200/50' : 'border-slate-300 text-slate-600 hover:bg-red-100'}`}
+                    className={`h-9 w-9 rounded-full text-sm font-semibold transition-colors border-2 flex items-center justify-center ${current === 0 ? 'bg-red-600 border-red-600 text-white' : 'border-slate-300 text-slate-600 bg-transparent hover:bg-red-50 dark:hover:bg-slate-700'}`}
                     aria-pressed={current === 0}
           aria-label={current === 0 ? 'Remove dislike' : 'Dislike'}
                   >
@@ -121,7 +120,7 @@ export default function Results({ results, onSubmitRatings, submitted = false, s
             type="button"
             onClick={handleSubmit}
       disabled={submitting}
-            className={`green-glow-button ${anyRated && !submitting ? 'green-glow-active' : ''} rounded-md px-4 py-2 text-sm font-medium text-white shadow focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-60 disabled:cursor-not-allowed ${submitting ? 'bg-slate-700' : 'bg-slate-900 hover:bg-slate-800'}`}
+            className={`green-glow-button ${anyRated && !submitting ? 'green-glow-active' : ''} rounded-md px-4 py-2 text-sm font-medium text-white border-2 border-green-600 bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:border-slate-400`}
           >
       {submitting ? 'Submitting…' : 'Submit ratings'}
           </button>

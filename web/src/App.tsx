@@ -304,7 +304,7 @@ function App() {
             </div>
         </header>
 
-        <section className="mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-6 shadow-sm backdrop-blur-sm">
+        <section className="mb-5 rounded-xl border border-slate-900 dark:border-slate-900 p-6">
           <Recorder
             onRecorded={onRecorded}
             centerContent={
@@ -329,7 +329,7 @@ function App() {
         </section>
 
         {results.length > 0 && (
-          <section className="results-enter mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-6 shadow-sm backdrop-blur-sm">
+          <section className="results-enter mb-6 rounded-xl border border-slate-900 dark:border-slate-900 p-6">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Matched sounds ✧♪</h2>
             </div>
@@ -342,7 +342,7 @@ function App() {
         )}
 
         {/* Credits Footer */}
-        <footer className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
+        <footer className="mt-6 pt-8 border-t border-slate-200 dark:border-slate-700">
           <div className="flex flex-col items-center gap-8 text-center">
             {/* Team names */}
             <div>
@@ -391,7 +391,7 @@ function App() {
       {showConsent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={cancelConsent} aria-hidden="true" />
-          <div role="dialog" aria-modal="true" aria-labelledby="consent-title" className="relative z-10 w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-lg max-h-[90vh] overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-labelledby="consent-title" className="relative z-10 w-full max-w-md rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-6 max-h-[90vh] overflow-y-auto">
         <h3 id="consent-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">Research Study Consent</h3>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 text-left">
           By default, all recordings and feedback you record exist exclusively on your device, not our servers.<br /><br />
@@ -455,34 +455,12 @@ function App() {
           </label>
         </div>
         <div className="flex justify-end gap-3">
-          <button type="button" onClick={cancelConsent} className="rounded-md px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">Cancel</button>
+          <button type="button" onClick={cancelConsent} className="rounded-md px-4 py-2 text-sm font-medium border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800">Cancel</button>
           <button 
             type="button" 
             onClick={acceptConsentAndSubmit}
             disabled={!hasReadDocuments || !hasAgreedToConsent}
-            className="rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ 
-          backgroundColor: hasReadDocuments && hasAgreedToConsent ? 'rgb(143, 177, 120)' : 'rgb(203, 213, 225)', 
-          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
-            }}
-            onMouseEnter={(e) => {
-          if (hasReadDocuments && hasAgreedToConsent) {
-            e.currentTarget.style.backgroundColor = 'rgb(133, 167, 110)'
-          }
-            }}
-            onMouseLeave={(e) => {
-          if (hasReadDocuments && hasAgreedToConsent) {
-            e.currentTarget.style.backgroundColor = 'rgb(143, 177, 120)'
-          } else {
-            e.currentTarget.style.backgroundColor = 'rgb(203, 213, 225)'
-          }
-            }}
-            onFocus={(e) => {
-          if (hasReadDocuments && hasAgreedToConsent) {
-            e.currentTarget.style.boxShadow = '0 0 0 2px rgba(143, 177, 120, 0.5)'
-          }
-            }}
-            onBlur={(e) => e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)'}
+            className={`rounded-md px-4 py-2 text-sm font-medium border-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${hasReadDocuments && hasAgreedToConsent ? 'border-green-600 bg-green-600 text-white hover:bg-green-700' : 'border-slate-300 dark:border-slate-600 bg-transparent text-slate-600 dark:text-slate-400 cursor-not-allowed'}`}
           >
             Agree & Submit
           </button>
@@ -494,7 +472,7 @@ function App() {
       {showAbout && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAbout(false)} aria-hidden="true" />
-          <div role="dialog" aria-modal="true" aria-labelledby="about-title" className="relative z-10 w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-lg">
+          <div role="dialog" aria-modal="true" aria-labelledby="about-title" className="relative z-10 w-full max-w-md rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-6">
         <h3 id="about-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">About this project</h3>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
           thatsoundslike.me is built and maintained by{" "}
@@ -509,7 +487,7 @@ function App() {
           We hope you enjoy playing around with the website! For feedback or questions, email c dot plachouras at qmul dot ac dot uk.
         </p>
         <div className="flex justify-end">
-          <button type="button" onClick={() => setShowAbout(false)} className="rounded-md px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">Close</button>
+          <button type="button" onClick={() => setShowAbout(false)} className="rounded-md px-4 py-2 text-sm font-medium border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800">Close</button>
         </div>
           </div>
         </div>
@@ -520,7 +498,7 @@ function App() {
           <button
             type="button"
             onClick={() => setShowAbout(true)}
-            className="group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-sm backdrop-blur bg-white/80 dark:bg-slate-800/70 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 sm:w-auto sm:justify-start"
+            className="group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium backdrop-blur bg-white dark:bg-slate-800 border-slate-900 dark:border-slate-900 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors sm:w-auto sm:justify-start"
             aria-label="About this project"
           >
             About this project
@@ -539,11 +517,11 @@ function App() {
                 setShowConsent(true)
               }
             }}
-            className={`group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-sm backdrop-blur bg-white/80 dark:bg-slate-800/70 border-slate-300 dark:border-slate-600 transition-colors ${hasConsent ? 'text-green-600 dark:text-green-400' : 'text-slate-600 dark:text-slate-300'} sm:w-auto sm:justify-start`}
+            className={`group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium backdrop-blur bg-white dark:bg-slate-800 transition-colors sm:w-auto sm:justify-start border-slate-900 dark:border-slate-900 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-700`}
             aria-pressed={hasConsent}
             aria-label="Toggle data sharing consent"
           >
-            <span className={`h-2.5 w-2.5 rounded-full ${hasConsent ? 'bg-green-500' : 'bg-slate-400 dark:bg-slate-500'}`} />
+            <span className={`h-2.5 w-2.5 rounded-full ${hasConsent ? 'bg-green-600' : 'bg-slate-400 dark:bg-slate-500'}`} />
             {hasConsent ? 'Data sharing: ON' : 'Data sharing: OFF'}
           </button>
         </div>

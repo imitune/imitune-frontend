@@ -365,15 +365,17 @@ html, body, #root {
   }
 }
 
-/* Transparent container backgrounds */
+/* Container backgrounds */
 section.mb-8.rounded-xl {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(8px);
+  background-color: white !important;
+  backdrop-filter: none;
+  box-shadow: none !important;
 }
 
 @media (prefers-color-scheme: dark) {
   section.mb-8.rounded-xl {
-    background-color: rgba(30, 41, 59, 0.7) !important;
+    background-color: #1e293b !important;
+    box-shadow: none !important;
   }
 }
 
