@@ -317,7 +317,7 @@ function App() {
               </>
             }
             extraButton={
-              <button className={`glow-on-hover flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-base font-medium text-white hover:bg-slate-800 disabled:opacity-50 md:w-auto ${embedding && hasValidAudio && !loading && !processingEmbedding && results.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !hasValidAudio || !apiUrl || processingEmbedding} onClick={onSearch}>
+              <button className={`yellow-glow-action-button flex w-full items-center justify-center rounded-xl border border-slate-900 dark:border-slate-900 px-4 py-2 text-base font-medium text-black dark:text-white hover:opacity-90 disabled:opacity-50 md:w-auto ${embedding && hasValidAudio && !loading && !processingEmbedding && results.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !hasValidAudio || !apiUrl || processingEmbedding} onClick={onSearch}>
                 {loading ? 'Searching…' : processingEmbedding ? 'Processing…' : 'Search ✨'}
               </button>
             }
@@ -460,7 +460,8 @@ function App() {
             type="button" 
             onClick={acceptConsentAndSubmit}
             disabled={!hasReadDocuments || !hasAgreedToConsent}
-            className={`rounded-md px-4 py-2 text-sm font-medium border-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${hasReadDocuments && hasAgreedToConsent ? 'border-green-600 bg-green-600 text-white hover:bg-green-700' : 'border-slate-300 dark:border-slate-600 bg-transparent text-slate-600 dark:text-slate-400 cursor-not-allowed'}`}
+            className={`rounded-md px-4 py-2 text-sm font-medium border-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${hasReadDocuments && hasAgreedToConsent ? 'text-white' : 'border-slate-300 dark:border-slate-600 bg-transparent text-slate-600 dark:text-slate-400 cursor-not-allowed'}`}
+            style={hasReadDocuments && hasAgreedToConsent ? { borderColor: 'rgb(143, 177, 120)', backgroundColor: 'rgb(143, 177, 120)' } : {}}
           >
             Agree & Submit
           </button>
@@ -521,7 +522,7 @@ function App() {
             aria-pressed={hasConsent}
             aria-label="Toggle data sharing consent"
           >
-            <span className={`h-2.5 w-2.5 rounded-full ${hasConsent ? 'bg-green-600' : 'bg-slate-400 dark:bg-slate-500'}`} />
+            <span className={`h-2.5 w-2.5 rounded-full ${hasConsent ? '' : 'bg-slate-400 dark:bg-slate-500'}`} style={hasConsent ? { backgroundColor: 'rgb(143, 177, 120)' } : {}} />
             {hasConsent ? 'Data sharing: ON' : 'Data sharing: OFF'}
           </button>
         </div>

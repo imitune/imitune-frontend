@@ -152,6 +152,106 @@ html, body, #root {
 .green-glow-button:disabled:after { background:#64748b; }
 @keyframes green-glowing { 0%{background-position:0 0;} 50%{background-position:250% 0;} 100%{background-position:0 0;} }
 
+/* Green glow for action buttons (conditional) */
+.green-glow-action-button {
+  position: relative;
+  z-index: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.green-glow-action-button:before {
+  content: '';
+  background: linear-gradient(45deg, rgb(143, 177, 120), rgb(132, 204, 22), rgb(143, 177, 120), rgb(132, 204, 22));
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background-size: 400%;
+  z-index: -1;
+  filter: blur(5px);
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  animation: green-record-glowing 7s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  border-radius: 0.75rem; /* matches rounded-xl */
+}
+
+.green-glow-action-button.glow-active:before {
+  opacity: 1;
+}
+
+.green-glow-action-button:after {
+  z-index: -1;
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: white;
+  left: 0;
+  top: 0;
+  border-radius: 0.75rem; /* matches rounded-xl */
+}
+
+@media (prefers-color-scheme: dark) {
+  .green-glow-action-button:after {
+    background: #0f172a; /* slate-900 for dark mode */
+  }
+}
+
+.green-glow-action-button:disabled:before {
+  opacity: 0;
+}
+
+/* Yellow-orange glow for action buttons (conditional) */
+.yellow-glow-action-button {
+  position: relative;
+  z-index: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.yellow-glow-action-button:before {
+  content: '';
+  background: linear-gradient(45deg, rgb(253, 224, 71), rgb(253, 185, 19), rgb(251, 146, 60), rgb(253, 224, 71));
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background-size: 400%;
+  z-index: -1;
+  filter: blur(5px);
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  animation: yellow-glowing 7s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  border-radius: 0.75rem; /* matches rounded-xl */
+}
+
+.yellow-glow-action-button.glow-active:before {
+  opacity: 1;
+}
+
+.yellow-glow-action-button:after {
+  z-index: -1;
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: white;
+  left: 0;
+  top: 0;
+  border-radius: 0.75rem; /* matches rounded-xl */
+}
+
+@media (prefers-color-scheme: dark) {
+  .yellow-glow-action-button:after {
+    background: #0f172a; /* slate-900 for dark mode */
+  }
+}
+
+.yellow-glow-action-button:disabled:before {
+  opacity: 0;
+}
+
 /* Yellow glow for microphone permission request */
 .yellow-glow-button {
   position: relative;
@@ -170,7 +270,7 @@ html, body, #root {
   filter: blur(5px);
   width: calc(100% + 4px);
   height: calc(100% + 4px);
-  animation: yellow-glowing 3s linear infinite;
+  animation: yellow-glowing 7s linear infinite;
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
   border-radius: 9999px; /* matches rounded-full */
@@ -182,7 +282,7 @@ html, body, #root {
   position: absolute;
   width: 100%;
   height: 100%;
-  background: #0f172a; /* slate-900 */
+  background: rgb(236, 168, 93); /* custom orange-ish color */
   left: 0;
   top: 0;
   border-radius: 9999px; /* matches rounded-full */
@@ -207,7 +307,7 @@ html, body, #root {
 
 .green-glow-record-button:before {
   content: '';
-  background: linear-gradient(45deg, rgb(74, 222, 128), rgb(34, 197, 94), rgb(22, 163, 74), rgb(74, 222, 128));
+  background: linear-gradient(45deg, rgb(143, 177, 120), rgb(132, 204, 22), rgb(143, 177, 120), rgb(132, 204, 22));
   position: absolute;
   top: -2px;
   left: -2px;
@@ -216,7 +316,7 @@ html, body, #root {
   filter: blur(5px);
   width: calc(100% + 4px);
   height: calc(100% + 4px);
-  animation: green-record-glowing 3s linear infinite;
+  animation: green-record-glowing 7s linear infinite;
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
   border-radius: 9999px; /* matches rounded-full */
@@ -228,7 +328,7 @@ html, body, #root {
   position: absolute;
   width: 100%;
   height: 100%;
-  background: #16a34a; /* green-600 */
+  background: rgb(143, 177, 120); /* custom green */
   left: 0;
   top: 0;
   border-radius: 9999px; /* matches rounded-full */
@@ -244,7 +344,7 @@ html, body, #root {
   100% { background-position: 0 0; }
 }
 
-/* Red glow for recording state */
+/* Red glow for recording state - pastel red */
 .red-glow-record-button {
   position: relative;
   z-index: 0;
@@ -253,7 +353,7 @@ html, body, #root {
 
 .red-glow-record-button:before {
   content: '';
-  background: linear-gradient(45deg, rgb(239, 68, 68), rgb(220, 38, 38), rgb(185, 28, 28), rgb(239, 68, 68));
+  background: linear-gradient(45deg, rgb(255, 100, 100), rgb(220, 50, 50), rgb(255, 100, 100), rgb(220, 50, 50));
   position: absolute;
   top: -2px;
   left: -2px;
@@ -262,7 +362,7 @@ html, body, #root {
   filter: blur(5px);
   width: calc(100% + 4px);
   height: calc(100% + 4px);
-  animation: red-record-glowing 3s linear infinite;
+  animation: red-record-glowing 7s linear infinite;
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
   border-radius: 9999px; /* matches rounded-full */
@@ -274,7 +374,7 @@ html, body, #root {
   position: absolute;
   width: 100%;
   height: 100%;
-  background: #dc2626; /* red-600 */
+  background: rgb(220, 80, 80); /* more intense red for recording */
   left: 0;
   top: 0;
   border-radius: 9999px; /* matches rounded-full */

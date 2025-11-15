@@ -372,12 +372,12 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
             type="button"
             onClick={handleRecordClick}
             disabled={requestingMic}
-            className={`relative flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`relative flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-medium text-white transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
               isRecording
-                ? 'red-glow-record-button focus:ring-red-600'
+                ? 'red-glow-record-button'
                 : !micGranted
-                ? 'yellow-glow-button focus:ring-yellow-600'
-                : 'green-glow-record-button focus:ring-green-600'
+                ? 'yellow-glow-button'
+                : 'green-glow-record-button'
             }`}
             aria-pressed={isRecording}
             aria-label={requestingMic ? 'Requesting microphone...' : isRecording ? 'Stop recording' : !micGranted ? 'Grant microphone permission' : audioUrl ? 'Re-record' : 'Record'}
@@ -404,17 +404,22 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
             <button
               type="button"
               onClick={togglePlayback}
-              className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full border-2 border-green-600 bg-transparent text-green-600 hover:bg-green-50 dark:hover:bg-slate-700 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 dark:focus:ring-offset-slate-800"
+              className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full border-2 text-white hover:opacity-80 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
+              style={{ 
+                borderColor: 'rgb(143, 177, 120)', 
+                backgroundColor: 'rgb(143, 177, 120)',
+                color: 'white'
+              }}
               aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
             >
               {isPlaying ? (
                 /* Pause icon */
-                <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
                 </svg>
               ) : (
                 /* Play icon */
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: '1px' }}>
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: '1px' }}>
                   <path d="M8 5v14l11-7z"/>
                 </svg>
               )}
