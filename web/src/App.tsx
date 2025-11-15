@@ -300,7 +300,7 @@ function App() {
       <div className="static-bg" aria-hidden="true" />
       <div className="relative min-h-screen text-slate-900 dark:text-slate-100">
       <div className="mx-auto max-w-5xl px-4 pt-10 pb-20">
-  <header className="mb-8 flex flex-col items-center gap-4 text-center lg:flex-row lg:items-center lg:justify-between lg:text-left">
+  <header className="mb-5 grid gap-1 text-center lg:grid-cols-[auto,1fr] lg:items-center lg:text-left">
           <div 
             className="flex flex-col items-center gap-2 sm:flex-row sm:items-center sm:gap-4 cursor-pointer"
             onClick={() => window.location.reload()}
@@ -320,9 +320,17 @@ function App() {
               <span className="text-slate-500 dark:text-slate-400" style={{ fontStyle: 'normal' }}>.me</span>
             </h1>
           </div>
-  <div className="hidden lg:block text-xl text-black dark:text-slate-300 text-center lg:text-right">
-                <span className="quintessential-regular" style={{ fontStyle: 'italic' }}>*Magically*  </span> search for sounds with your voice
-            </div>
+  <div className="text-xl text-black dark:text-slate-300 text-center lg:text-right">
+            <span className="quintessential-regular" style={{ fontStyle: 'italic' }}>*Magically*  </span> search for sounds with your voice
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAbout(true)}
+            className="text-base text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 underline transition-colors justify-self-center lg:justify-self-end lg:col-start-2 lg:-mt-4"
+            aria-label="About this project"
+          >
+            Learn more about this project ↗
+          </button>
         </header>
 
         <section className="mb-5 rounded-xl border border-slate-900 dark:border-slate-900 p-6">
@@ -514,18 +522,9 @@ function App() {
           </div>
         </div>
       )}
-      {/* Bottom-right actions: About + Data sharing toggle */}
+      {/* Data sharing toggle - optional, positioned bottom-right */}
   <div className="fixed bottom-4 left-1/2 z-40 flex w-full max-w-xs -translate-x-1/2 px-4 sm:left-auto sm:right-4 sm:w-auto sm:max-w-none sm:px-0 sm:translate-x-0">
         <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:items-end">
-          <button
-            type="button"
-            onClick={() => setShowAbout(true)}
-            className="group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium backdrop-blur bg-white dark:bg-[#202020] border-slate-900 dark:border-slate-900 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-[#282828] transition-colors sm:w-auto sm:justify-start"
-            aria-label="About this project"
-          >
-            About this project
-          </button>
-
           <button
             type="button"
             onClick={() => {
