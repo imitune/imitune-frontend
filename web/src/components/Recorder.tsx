@@ -366,35 +366,67 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
   return (
     <div className="space-y-4">
       <div className="relative flex flex-col items-center gap-3 lg:flex-row lg:items-center lg:gap-4 lg:min-h-[4rem]">
-        <div className="flex w-full flex-wrap items-center justify-center gap-2 lg:w-auto lg:flex-nowrap lg:justify-start lg:gap-4">
+        <div className="flex w-full flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 lg:w-auto lg:flex-row lg:justify-start">
+          {/* Circular microphone button */}
           <button
             type="button"
-              onClick={handleRecordClick}
-              disabled={requestingMic}
-              className={`relative rounded-full px-6 py-3 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                isRecording
-                  ? 'red-glow-record-button focus:ring-red-600'
-                  : !micGranted
-                  ? 'yellow-glow-button focus:ring-yellow-600'
-                  : 'green-glow-record-button focus:ring-green-600'
-              }`}
-              aria-pressed={isRecording}
+            onClick={handleRecordClick}
+            disabled={requestingMic}
+            className={`relative flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-medium text-white transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+              isRecording
+                ? 'red-glow-record-button'
+                : !micGranted
+                ? 'yellow-glow-button'
+                : 'green-glow-record-button'
+            }`}
+            aria-pressed={isRecording}
+            aria-label={requestingMic ? 'Requesting microphone...' : isRecording ? 'Stop recording' : !micGranted ? 'Grant microphone permission' : audioUrl ? 'Re-record' : 'Record'}
           >
-            {requestingMic ? 'Requesting mic...' : isRecording ? 'Stop' : !micGranted ? 'Grant microphone permission' : audioUrl ? 'Re-record' : 'Record'}
+            {/* Microphone SVG icon */}
+            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 69.245 38.312 c -1.104 0 -2 0.896 -2 2 v 6.505 c 0 12.266 -9.979 22.244 -22.245 22.244 s -22.245 -9.979 -22.245 -22.244 v -6.505 c 0 -1.104 -0.896 -2 -2 -2 s -2 0.896 -2 2 v 6.505 c 0 13.797 10.705 25.134 24.245 26.16 V 86 h -9.126 c -1.104 0 -2 0.896 -2 2 s 0.896 2 2 2 h 22.252 c 1.104 0 2 -0.896 2 -2 s -0.896 -2 -2 -2 H 47 V 72.978 c 13.54 -1.026 24.245 -12.363 24.245 -26.16 v -6.505 C 71.245 39.208 70.35 38.312 69.245 38.312 z"/>
+              <path d="M 45 59.809 c 8.481 0 15.382 -6.9 15.382 -15.382 V 15.382 C 60.382 6.9 53.481 0 45 0 S 29.618 6.9 29.618 15.382 v 29.044 C 29.618 52.908 36.519 59.809 45 59.809 z M 33.618 15.382 C 33.618 9.106 38.724 4 45 4 c 6.276 0 11.382 5.106 11.382 11.382 v 29.044 c 0 6.276 -5.105 11.382 -11.382 11.382 c -6.276 0 -11.382 -5.106 -11.382 -11.382 V 15.382 z"/>
+            </svg>
           </button>
-          {audioUrl && (
+
+          {/* Text label next to button */}
+          <div className="flex flex-col items-center sm:items-start gap-1 text-center sm:text-left">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              {requestingMic ? 'Requesting mic...' : isRecording ? 'Recording...' : !micGranted ? 'Grant microphone permission' : audioUrl ? 'Re-record' : 'Record'}
+            </p>
+            {duration && (
+              <span className="text-xs text-slate-500 dark:text-slate-400">{duration.toFixed(2)}s</span>
+            )}
+          </div>
+
+          {/* Play button next to text */}
+          {audioUrl && ready && (
             <button
               type="button"
               onClick={togglePlayback}
-              className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600"
+              className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full border-2 text-white hover:opacity-80 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
+              style={{ 
+                borderColor: 'rgb(143, 177, 120)', 
+                backgroundColor: 'rgb(143, 177, 120)',
+                color: 'white'
+              }}
+              aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
             >
-              {isPlaying ? 'Pause' : 'Play'}
+              {isPlaying ? (
+                /* Pause icon */
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                </svg>
+              ) : (
+                /* Play icon */
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: '1px' }}>
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              )}
             </button>
           )}
-          {duration && (
-            <span className="text-xs text-slate-500 dark:text-slate-400">{duration.toFixed(2)}s</span>
-          )}
         </div>
+
         {centerContent && (
           <>
             <div className="lg:hidden flex w-full flex-col items-center gap-1 text-center px-2">
@@ -411,9 +443,11 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
           </div>
         )}
       </div>
+
+      {/* Waveform container with floating play button */}
       <div
         ref={waveformContainerRef}
-        className={`relative w-full overflow-hidden rounded-md border border-dashed ${audioUrl ? 'border-slate-300 dark:border-slate-600' : 'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-800`}
+        className={`relative w-full overflow-hidden rounded-md border border-slate-900 dark:border-slate-900 bg-transparent`}
         style={{height: 120}}
       >
         {(!audioUrl && !isRecording) && (
@@ -423,13 +457,13 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
         )}
         {isRecording && (
           <div className="flex flex-col items-center gap-1 text-center text-xs text-red-600 dark:text-red-400 pt-8">
-            <div className="h-3 w-3 animate-fast-blink rounded-full bg-green-600 dark:bg-green-400" />
-            <p>Recording… (max ${maxSeconds}s)</p>
+            <div className="h-3 w-3 animate-fast-blink rounded-full bg-red-600 dark:bg-red-400" />
+            <p>Recording… (max {maxSeconds}s)</p>
           </div>
         )}
         <canvas ref={canvasRef} className={`absolute left-0 top-0 h-full w-full ${ready && audioUrl ? 'opacity-100' : 'opacity-0 transition-opacity'} pointer-events-none`} />
         {audioUrl && ready && (
-          <div ref={playheadRef} className="pointer-events-none absolute top-0 h-full w-px bg-green-600 shadow-[0_0_2px_rgba(34,197,94,0.8)]" />
+          <div ref={playheadRef} className="pointer-events-none absolute top-0 h-full w-px bg-green-600" />
         )}
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}

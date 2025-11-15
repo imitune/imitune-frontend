@@ -24,6 +24,7 @@ function App() {
   const [pendingRatingsData, setPendingRatingsData] = useState<{ urls: string[]; ratings: (-1 | 0 | 1)[] } | null>(null)
   const [hasReadDocuments, setHasReadDocuments] = useState(false)
   const [hasAgreedToConsent, setHasAgreedToConsent] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   const [session, setSession] = useState<any>(null)
   // Environment variables (baked at build time). In GitHub Pages workflow you must provide them.
@@ -53,6 +54,26 @@ function App() {
   // Model URL fallback: use provided env var OR default to model in public folder respecting Vite base path.
   // Avoid using new URL() with a path-only base (can throw). import.meta.env.BASE_URL always ends with '/'.
   const modelUrl = modelEnvUrl || (import.meta.env.BASE_URL + 'model.onnx')
+
+  // Detect dark mode
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    setIsDarkMode(mediaQuery.matches)
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsDarkMode(e.matches)
+    }
+    
+    // Modern browsers
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange)
+      return () => mediaQuery.removeEventListener('change', handleChange)
+    } else {
+      // Fallback for older browsers
+      mediaQuery.addListener(handleChange)
+      return () => mediaQuery.removeListener(handleChange)
+    }
+  }, [])
 
   useEffect(() => {
     let mounted = true
@@ -279,7 +300,7 @@ function App() {
       <div className="static-bg" aria-hidden="true" />
       <div className="relative min-h-screen text-slate-900 dark:text-slate-100">
       <div className="mx-auto max-w-5xl px-4 pt-10 pb-20">
-  <header className="mb-8 flex flex-col items-center gap-4 text-center lg:flex-row lg:items-center lg:justify-between lg:text-left">
+  <header className="mb-5 grid gap-1 text-center lg:grid-cols-[auto,1fr] lg:items-center lg:text-left">
           <div 
             className="flex flex-col items-center gap-2 sm:flex-row sm:items-center sm:gap-4 cursor-pointer"
             onClick={() => window.location.reload()}
@@ -299,12 +320,20 @@ function App() {
               <span className="text-slate-500 dark:text-slate-400" style={{ fontStyle: 'normal' }}>.me</span>
             </h1>
           </div>
-  <div className="hidden lg:block text-xl text-black dark:text-slate-300 text-center lg:text-right">
-                <span className="quintessential-regular" style={{ fontStyle: 'italic' }}>*Magically*  </span> search for sounds with your voice
-            </div>
+  <div className="text-xl text-black dark:text-slate-300 text-center lg:text-right">
+            <span className="quintessential-regular" style={{ fontStyle: 'italic' }}>*Magically*  </span> search for sounds with your voice
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAbout(true)}
+            className="text-base text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 underline transition-colors justify-self-center lg:justify-self-end lg:col-start-2 lg:-mt-4"
+            aria-label="About this project"
+          >
+            Learn more about this project ↗
+          </button>
         </header>
 
-        <section className="mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-6 shadow-sm backdrop-blur-sm">
+        <section className="mb-5 rounded-xl border border-slate-900 dark:border-slate-900 p-6">
           <Recorder
             onRecorded={onRecorded}
             centerContent={
@@ -317,7 +346,7 @@ function App() {
               </>
             }
             extraButton={
-              <button className={`glow-on-hover flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-base font-medium text-white hover:bg-slate-800 disabled:opacity-50 md:w-auto ${embedding && hasValidAudio && !loading && !processingEmbedding && results.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !hasValidAudio || !apiUrl || processingEmbedding} onClick={onSearch}>
+              <button className={`yellow-glow-action-button flex w-full items-center justify-center rounded-xl border border-slate-900 dark:border-slate-900 px-4 py-2 text-base font-medium text-black dark:text-white hover:opacity-90 disabled:opacity-50 md:w-auto ${embedding && hasValidAudio && !loading && !processingEmbedding && results.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !hasValidAudio || !apiUrl || processingEmbedding} onClick={onSearch}>
                 {loading ? 'Searching…' : processingEmbedding ? 'Processing…' : 'Search ✨'}
               </button>
             }
@@ -329,9 +358,9 @@ function App() {
         </section>
 
         {results.length > 0 && (
-          <section className="results-enter mb-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-6 shadow-sm backdrop-blur-sm">
+          <section className="results-enter mb-6 rounded-xl border border-slate-900 dark:border-slate-900 p-6">
             <div className="mb-4">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Matched sounds ✧♪</h2>
+            <h2 className="text-sm md:text-base font-semibold text-slate-900 dark:text-slate-100 leading-tight">Matched sounds 🔎🎶</h2>
             </div>
 
             <div className="mt-4">
@@ -341,12 +370,57 @@ function App() {
           </section>
         )}
 
+        {/* Credits Footer */}
+        <footer className="mt-6 pt-8 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex flex-col items-center gap-8 text-center">
+            {/* Team names */}
+            <div>
+              <p className="mb-3 text-xs font-medium tracking-wider text-slate-500 dark:text-slate-400">Made with love by</p>
+              <p className="text-sm text-slate-700 dark:text-slate-300">
+                <a href="https://chrispla.me" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 hover:underline">
+                  Christos Plachouras
+                </a>
+                {", "}
+                <a href="https://uk.linkedin.com/in/adibh" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 hover:underline">
+                  Aditya Bhattacharjee
+                </a>
+                {", "}
+                <a href="https://uk.linkedin.com/in/mimbres-101" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 hover:underline">
+                  Sungkyun Chang
+                </a>
+              </p>
+              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">and supported by</p>
+            </div>
+
+            {/* Logos */}
+            <div className="flex items-center justify-center gap-8">
+              <a href="https://www.qmul.ac.uk" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-75">
+                <img 
+                  src={`${import.meta.env.BASE_URL}${isDarkMode ? 'qmul_white.png' : 'qmul.png'}`} 
+                  alt="Queen Mary University of London" 
+                  className="h-12 w-auto object-contain"
+                />
+              </a>
+              <a href="https://www.ukri.org" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-75">
+                <img 
+                  src={`${import.meta.env.BASE_URL}${isDarkMode ? 'ukri_white.png' : 'ukri.png'}`} 
+                  alt="UKRI" 
+                  className="h-12 w-auto object-contain"
+                />
+              </a>
+            </div>
+
+            {/* Copyright */}
+            <p className="text-xs text-slate-500 dark:text-slate-500">© 2025 thatsoundslike.me. All rights reserved.</p>
+          </div>
+        </footer>
+
       </div>
       {/* Consent Modal */}
       {showConsent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={cancelConsent} aria-hidden="true" />
-          <div role="dialog" aria-modal="true" aria-labelledby="consent-title" className="relative z-10 w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-lg max-h-[90vh] overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-labelledby="consent-title" className="relative z-10 w-full max-w-md rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-[#202020] p-6 max-h-[90vh] overflow-y-auto">
         <h3 id="consent-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">Research Study Consent</h3>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 text-left">
           By default, all recordings and feedback you record exist exclusively on your device, not our servers.<br /><br />
@@ -410,34 +484,13 @@ function App() {
           </label>
         </div>
         <div className="flex justify-end gap-3">
-          <button type="button" onClick={cancelConsent} className="rounded-md px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">Cancel</button>
+          <button type="button" onClick={cancelConsent} className="rounded-md px-4 py-2 text-sm font-medium border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-transparent hover:bg-slate-50 dark:hover:bg-[#202020]">Cancel</button>
           <button 
             type="button" 
             onClick={acceptConsentAndSubmit}
             disabled={!hasReadDocuments || !hasAgreedToConsent}
-            className="rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ 
-          backgroundColor: hasReadDocuments && hasAgreedToConsent ? 'rgb(143, 177, 120)' : 'rgb(203, 213, 225)', 
-          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
-            }}
-            onMouseEnter={(e) => {
-          if (hasReadDocuments && hasAgreedToConsent) {
-            e.currentTarget.style.backgroundColor = 'rgb(133, 167, 110)'
-          }
-            }}
-            onMouseLeave={(e) => {
-          if (hasReadDocuments && hasAgreedToConsent) {
-            e.currentTarget.style.backgroundColor = 'rgb(143, 177, 120)'
-          } else {
-            e.currentTarget.style.backgroundColor = 'rgb(203, 213, 225)'
-          }
-            }}
-            onFocus={(e) => {
-          if (hasReadDocuments && hasAgreedToConsent) {
-            e.currentTarget.style.boxShadow = '0 0 0 2px rgba(143, 177, 120, 0.5)'
-          }
-            }}
-            onBlur={(e) => e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)'}
+            className={`rounded-md px-4 py-2 text-sm font-medium border-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${hasReadDocuments && hasAgreedToConsent ? 'text-white' : 'border-slate-300 dark:border-slate-600 bg-transparent text-slate-600 dark:text-slate-400 cursor-not-allowed'}`}
+            style={hasReadDocuments && hasAgreedToConsent ? { borderColor: 'rgb(143, 177, 120)', backgroundColor: 'rgb(143, 177, 120)' } : {}}
           >
             Agree & Submit
           </button>
@@ -449,7 +502,7 @@ function App() {
       {showAbout && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAbout(false)} aria-hidden="true" />
-          <div role="dialog" aria-modal="true" aria-labelledby="about-title" className="relative z-10 w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-lg">
+          <div role="dialog" aria-modal="true" aria-labelledby="about-title" className="relative z-10 w-full max-w-md rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-[#202020] p-6">
         <h3 id="about-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">About this project</h3>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
           thatsoundslike.me is built and maintained by{" "}
@@ -464,23 +517,14 @@ function App() {
           We hope you enjoy playing around with the website! For feedback or questions, email c dot plachouras at qmul dot ac dot uk.
         </p>
         <div className="flex justify-end">
-          <button type="button" onClick={() => setShowAbout(false)} className="rounded-md px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">Close</button>
+          <button type="button" onClick={() => setShowAbout(false)} className="rounded-md px-4 py-2 text-sm font-medium border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-transparent hover:bg-slate-50 dark:hover:bg-[#202020]">Close</button>
         </div>
           </div>
         </div>
       )}
-      {/* Bottom-right actions: About + Data sharing toggle */}
+      {/* Data sharing toggle - optional, positioned bottom-right */}
   <div className="fixed bottom-4 left-1/2 z-40 flex w-full max-w-xs -translate-x-1/2 px-4 sm:left-auto sm:right-4 sm:w-auto sm:max-w-none sm:px-0 sm:translate-x-0">
         <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:items-end">
-          <button
-            type="button"
-            onClick={() => setShowAbout(true)}
-            className="group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-sm backdrop-blur bg-white/80 dark:bg-slate-800/70 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 sm:w-auto sm:justify-start"
-            aria-label="About this project"
-          >
-            About this project
-          </button>
-
           <button
             type="button"
             onClick={() => {
@@ -494,15 +538,16 @@ function App() {
                 setShowConsent(true)
               }
             }}
-            className={`group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-sm backdrop-blur bg-white/80 dark:bg-slate-800/70 border-slate-300 dark:border-slate-600 transition-colors ${hasConsent ? 'text-green-600 dark:text-green-400' : 'text-slate-600 dark:text-slate-300'} sm:w-auto sm:justify-start`}
+            className={`group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium backdrop-blur bg-white dark:bg-[#202020] transition-colors sm:w-auto sm:justify-start border-slate-900 dark:border-slate-900 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-[#282828]`}
             aria-pressed={hasConsent}
             aria-label="Toggle data sharing consent"
           >
-            <span className={`h-2.5 w-2.5 rounded-full ${hasConsent ? 'bg-green-500' : 'bg-slate-400 dark:bg-slate-500'}`} />
+            <span className={`h-2.5 w-2.5 rounded-full ${hasConsent ? '' : 'bg-slate-400 dark:bg-slate-500'}`} style={hasConsent ? { backgroundColor: 'rgb(143, 177, 120)' } : {}} />
             {hasConsent ? 'Data sharing: ON' : 'Data sharing: OFF'}
           </button>
         </div>
       </div>
+
       </div>
     </>
   )
