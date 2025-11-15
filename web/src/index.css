@@ -35,13 +35,11 @@ section {
 
 @media (prefers-color-scheme: dark) {
   body { background: #0a0f1a; color: #f1f5f9; }
-  .static-bg { background:
-      radial-gradient(circle at 20% 25%, rgba(139,69,89,0.9), rgba(139,69,89,0) 45%),
-      radial-gradient(circle at 75% 15%, rgba(59,88,116,0.95), rgba(59,88,116,0) 50%),
-      radial-gradient(circle at 85% 80%, rgba(88,59,116,0.85), rgba(88,59,116,0) 45%),
-      radial-gradient(circle at 30% 85%, rgba(116,88,59,0.9), rgba(116,88,59,0) 50%),
-      radial-gradient(circle at 60% 50%, rgba(59,116,89,0.8), rgba(59,116,89,0) 40%),
-      linear-gradient(135deg, #0f1729 0%, #1a2332 30%, #1e2a3d 70%, #0a1021 100%);
-  }
-  section { background: #1e293b !important; box-shadow: none !important; }
+  .static-bg { background: #1a1a1a; }
+  section { background: #202020 !important; box-shadow: none !important; }
+
+  /* Make borders almost white in dark mode */
+  .border-slate-900 { border-color: #e0e0e0 !important; }
+  .border-slate-600 { border-color: #e0e0e0 !important; }
+  .border-slate-300 { border-color: #e0e0e0 !important; }
 }

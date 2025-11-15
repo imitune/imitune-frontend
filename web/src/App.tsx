@@ -24,6 +24,7 @@ function App() {
   const [pendingRatingsData, setPendingRatingsData] = useState<{ urls: string[]; ratings: (-1 | 0 | 1)[] } | null>(null)
   const [hasReadDocuments, setHasReadDocuments] = useState(false)
   const [hasAgreedToConsent, setHasAgreedToConsent] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   const [session, setSession] = useState<any>(null)
   // Environment variables (baked at build time). In GitHub Pages workflow you must provide them.
@@ -53,6 +54,26 @@ function App() {
   // Model URL fallback: use provided env var OR default to model in public folder respecting Vite base path.
   // Avoid using new URL() with a path-only base (can throw). import.meta.env.BASE_URL always ends with '/'.
   const modelUrl = modelEnvUrl || (import.meta.env.BASE_URL + 'model.onnx')
+
+  // Detect dark mode
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    setIsDarkMode(mediaQuery.matches)
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsDarkMode(e.matches)
+    }
+    
+    // Modern browsers
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange)
+      return () => mediaQuery.removeEventListener('change', handleChange)
+    } else {
+      // Fallback for older browsers
+      mediaQuery.addListener(handleChange)
+      return () => mediaQuery.removeListener(handleChange)
+    }
+  }, [])
 
   useEffect(() => {
     let mounted = true
@@ -367,14 +388,14 @@ function App() {
             <div className="flex items-center justify-center gap-8">
               <a href="https://www.qmul.ac.uk" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-75">
                 <img 
-                  src={`${import.meta.env.BASE_URL}qmul.png`} 
+                  src={`${import.meta.env.BASE_URL}${isDarkMode ? 'qmul_white.png' : 'qmul.png'}`} 
                   alt="Queen Mary University of London" 
                   className="h-12 w-auto object-contain"
                 />
               </a>
               <a href="https://www.ukri.org" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-75">
                 <img 
-                  src={`${import.meta.env.BASE_URL}ukri.png`} 
+                  src={`${import.meta.env.BASE_URL}${isDarkMode ? 'ukri_white.png' : 'ukri.png'}`} 
                   alt="UKRI" 
                   className="h-12 w-auto object-contain"
                 />
@@ -391,7 +412,7 @@ function App() {
       {showConsent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={cancelConsent} aria-hidden="true" />
-          <div role="dialog" aria-modal="true" aria-labelledby="consent-title" className="relative z-10 w-full max-w-md rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-6 max-h-[90vh] overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-labelledby="consent-title" className="relative z-10 w-full max-w-md rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-[#202020] p-6 max-h-[90vh] overflow-y-auto">
         <h3 id="consent-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">Research Study Consent</h3>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 text-left">
           By default, all recordings and feedback you record exist exclusively on your device, not our servers.<br /><br />
@@ -455,7 +476,7 @@ function App() {
           </label>
         </div>
         <div className="flex justify-end gap-3">
-          <button type="button" onClick={cancelConsent} className="rounded-md px-4 py-2 text-sm font-medium border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800">Cancel</button>
+          <button type="button" onClick={cancelConsent} className="rounded-md px-4 py-2 text-sm font-medium border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-transparent hover:bg-slate-50 dark:hover:bg-[#202020]">Cancel</button>
           <button 
             type="button" 
             onClick={acceptConsentAndSubmit}
@@ -473,7 +494,7 @@ function App() {
       {showAbout && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAbout(false)} aria-hidden="true" />
-          <div role="dialog" aria-modal="true" aria-labelledby="about-title" className="relative z-10 w-full max-w-md rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-6">
+          <div role="dialog" aria-modal="true" aria-labelledby="about-title" className="relative z-10 w-full max-w-md rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-[#202020] p-6">
         <h3 id="about-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">About this project</h3>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
           thatsoundslike.me is built and maintained by{" "}
@@ -488,7 +509,7 @@ function App() {
           We hope you enjoy playing around with the website! For feedback or questions, email c dot plachouras at qmul dot ac dot uk.
         </p>
         <div className="flex justify-end">
-          <button type="button" onClick={() => setShowAbout(false)} className="rounded-md px-4 py-2 text-sm font-medium border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800">Close</button>
+          <button type="button" onClick={() => setShowAbout(false)} className="rounded-md px-4 py-2 text-sm font-medium border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-transparent hover:bg-slate-50 dark:hover:bg-[#202020]">Close</button>
         </div>
           </div>
         </div>
@@ -499,7 +520,7 @@ function App() {
           <button
             type="button"
             onClick={() => setShowAbout(true)}
-            className="group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium backdrop-blur bg-white dark:bg-slate-800 border-slate-900 dark:border-slate-900 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors sm:w-auto sm:justify-start"
+            className="group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium backdrop-blur bg-white dark:bg-[#202020] border-slate-900 dark:border-slate-900 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-[#282828] transition-colors sm:w-auto sm:justify-start"
             aria-label="About this project"
           >
             About this project
@@ -518,7 +539,7 @@ function App() {
                 setShowConsent(true)
               }
             }}
-            className={`group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium backdrop-blur bg-white dark:bg-slate-800 transition-colors sm:w-auto sm:justify-start border-slate-900 dark:border-slate-900 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-700`}
+            className={`group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium backdrop-blur bg-white dark:bg-[#202020] transition-colors sm:w-auto sm:justify-start border-slate-900 dark:border-slate-900 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-[#282828]`}
             aria-pressed={hasConsent}
             aria-label="Toggle data sharing consent"
           >

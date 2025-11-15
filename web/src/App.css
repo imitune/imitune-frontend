@@ -36,10 +36,10 @@ html, body, #root {
   z-index: -1;
 }
 
-/* Dark mode background gradient - neutral dark tones */
+/* Dark mode background */
 @media (prefers-color-scheme: dark) {
   .static-bg {
-    background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 25%, #363636 50%, #424242 75%, #4e4e4e 100%);
+    background: #1a1a1a;
   }
 }
 
@@ -194,7 +194,7 @@ html, body, #root {
 
 @media (prefers-color-scheme: dark) {
   .green-glow-action-button:after {
-    background: #0f172a; /* slate-900 for dark mode */
+    background: #202020; /* consistent with container color */
   }
 }
 
@@ -244,7 +244,7 @@ html, body, #root {
 
 @media (prefers-color-scheme: dark) {
   .yellow-glow-action-button:after {
-    background: #0f172a; /* slate-900 for dark mode */
+    background: #202020; /* consistent with container color */
   }
 }
 
