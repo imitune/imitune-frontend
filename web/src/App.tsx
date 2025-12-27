@@ -22,8 +22,8 @@ function App() {
   const [showConsent, setShowConsent] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
   const [pendingRatingsData, setPendingRatingsData] = useState<{ urls: string[]; ratings: (-1 | 0 | 1)[] } | null>(null)
-  const [hasReadDocuments, setHasReadDocuments] = useState(false)
-  const [hasAgreedToConsent, setHasAgreedToConsent] = useState(false)
+  const [hasReadDocuments, setHasReadDocuments] = useState(true)
+  const [hasAgreedToConsent, setHasAgreedToConsent] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(false)
 
   const [session, setSession] = useState<any>(null)
@@ -263,6 +263,8 @@ function App() {
       void handleSubmitRatings(data)
     } else {
       setPendingRatingsData(data)
+      setHasReadDocuments(true)
+      setHasAgreedToConsent(true)
       setShowConsent(true)
     }
   }
@@ -423,9 +425,9 @@ function App() {
           <div role="dialog" aria-modal="true" aria-labelledby="consent-title" className="relative z-10 w-full max-w-md rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-[#202020] p-6 max-h-[90vh] overflow-y-auto">
         <h3 id="consent-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">Research Study Consent</h3>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 text-left">
-          By default, all recordings and feedback you record exist exclusively on your device, not our servers.<br /><br />
+          By default, all recordings and feedback you record exist exclusively on your device, not our server.<br /><br />
           
-          However, we are running a study to understand how to improve these models, which involves collecting anonymised user recordings and ratings. These would be used solely for <u>non-commercial</u> research purposes.<br /><br />
+          However, we are running a study to understand how to improve these models, which involves collecting anonymised user recordings and ratings.<br /><br />
 
          <b>We would sincerely appreciate it if you choose to contribute to the study by enabling data sharing!</b> <br /><br /> Detailed information about the study can be found in the{" "}
           <a
@@ -456,7 +458,7 @@ function App() {
           >
             here
           </button>
-           - tl;dr we're students and researchers at Queen Mary University of London, and we've built this as a fun tool to help with open-source, non-commercial research!
+           - in short, we're students and researchers at Queen Mary University of London, and we've built this as a fun tool to help with open-source research!
         </p>
 
         <div className="mb-4 space-y-3 border-t border-slate-200 dark:border-slate-700 pt-4">
@@ -511,10 +513,10 @@ function App() {
           <a href="https://uk.linkedin.com/in/mimbres-101" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 underline">Sungkyun Chang</a>, researchers at Queen Mary University of London.<br /><br />
           After participating in a challenge to build machine learning models for matching vocal imitations with target sounds, we thought of making this website as a fun, non-commercial application of the technology, that could help people discover new sounds and contribute to improving the underlying models.<br /><br />
           We designed this website with privacy in mind: unless you specifically agree to take part in our study, your recording is processed and stored ONLY on your device, not our servers. This is possible by having developed a tiny model that can run entirely in your browser with ONNX.<br /><br />
-          If you consent to data collection and submit likes or dislikes to returned sounds, you help us collect data to improve open-source, non-commercial query by vocal imitation models!
+          If you consent to data collection and submit likes or dislikes to returned sounds, you help us collect data to improve open-source query by vocal imitation models!
         </p>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-          We hope you enjoy playing around with the website! For feedback or questions, email c dot plachouras at qmul dot ac dot uk.
+          We hope you enjoy playing around with the website! For feedback or questions, email c dοt plachouras αt qmul dοt ac dοt uk.
         </p>
         <div className="flex justify-end">
           <button type="button" onClick={() => setShowAbout(false)} className="rounded-md px-4 py-2 text-sm font-medium border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-transparent hover:bg-slate-50 dark:hover:bg-[#202020]">Close</button>
@@ -535,6 +537,8 @@ function App() {
               } else {
                 // Turning on triggers modal for explicit acceptance
                 setPendingRatingsData(null)
+                setHasReadDocuments(true)
+                setHasAgreedToConsent(true)
                 setShowConsent(true)
               }
             }}
