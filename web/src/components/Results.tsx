@@ -128,7 +128,7 @@ export default function Results({ results, onSubmitRatings, submitted = false, s
           </button>
         )}
         {submitted && (
-          <p className="text-sm">Thank you for contributing to open research ♡</p>
+          <p className="text-sm">Ratings submitted, thank you!</p>
         )}
       </div>
     </div>

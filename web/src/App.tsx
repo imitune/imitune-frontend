@@ -342,7 +342,7 @@ function App() {
               <>
                 <h2 className="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight">Imitate the sound that's in your mind 🎙️</h2>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span className="font-bold">Stuck?</span> Try <em>boooom</em> 💥, <em>kraa kraa</em> 🐦‍⬛, or <em>beep beep</em> 🚗
+                  <span className="font-bold">Stuck?</span> Try <em>boooom</em> 💥, <em>woof woof</em> 🐶, or <em>weeeeoooo</em> 🚨
                 </p>
                 {/* Removed transient processing text to avoid layout shift */}
               </>
@@ -361,8 +361,13 @@ function App() {
 
         {results.length > 0 && (
           <section className="results-enter mb-6 rounded-xl border border-slate-900 dark:border-slate-900 p-6">
-            <div className="mb-4">
-            <h2 className="text-sm md:text-base font-semibold text-slate-900 dark:text-slate-100 leading-tight">Matched sounds 🔎🎶</h2>
+            <div className="mb-4 flex items-baseline justify-center gap-3 text-center">
+              <h2 className="text-sm md:text-base font-semibold text-slate-900 dark:text-slate-100 leading-tight">
+                Here are the best matches we found!
+              </h2>
+              <span className="text-xs md:text-sm font-normal text-slate-500 dark:text-slate-400 italic">
+                You can rate if the match is good <span aria-hidden="true">👍</span> or not <span aria-hidden="true">👎</span>
+              </span>
             </div>
 
             <div className="mt-4">
