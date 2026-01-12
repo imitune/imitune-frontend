@@ -8,9 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
-    
   },
-
   "dependencies": {
     "onnxruntime-web": "^1.19.2",
     "react": "^19.1.1",

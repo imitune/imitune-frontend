@@ -270,10 +270,6 @@ function App() {
   }
 
   const acceptConsentAndSubmit = () => {
-    if (!pendingRatingsData) {
-      setShowConsent(false)
-      return
-    }
     if (!hasReadDocuments || !hasAgreedToConsent) {
       return // Extra safety check
     }
@@ -282,11 +278,18 @@ function App() {
     } catch {}
     setHasConsent(true)
     setShowConsent(false)
-    const data = pendingRatingsData
-    setPendingRatingsData(null)
-    setHasReadDocuments(false)
-    setHasAgreedToConsent(false)
-    void handleSubmitRatings(data)
+    
+    if (pendingRatingsData) {
+      const data = pendingRatingsData
+      setPendingRatingsData(null)
+      setHasReadDocuments(false)
+      setHasAgreedToConsent(false)
+      void handleSubmitRatings(data)
+    } else {
+      // Just turning on data sharing, no ratings to submit
+      setHasReadDocuments(false)
+      setHasAgreedToConsent(false)
+    }
   }
 
   const cancelConsent = () => {
