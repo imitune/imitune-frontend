@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import './App.css'
 import soundalikeLogo from './assets/soundalike.svg'
 import Recorder from './components/Recorder'
@@ -25,6 +25,28 @@ function App() {
   const [hasReadDocuments, setHasReadDocuments] = useState(true)
   const [hasAgreedToConsent, setHasAgreedToConsent] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  
+  // List of 12 sound examples with emojis
+  const soundExamples = [
+    { sound: 'boooom', emoji: '💥' },
+    { sound: 'woof woof', emoji: '🐶' },
+    { sound: 'weeeeoooo', emoji: '🚨' },
+    { sound: 'meow', emoji: '🐱' },
+    { sound: 'vroom vroom', emoji: '🚗' },
+    { sound: 'drip drop', emoji: '💧' },
+    { sound: 'ring ring', emoji: '📞' },
+    { sound: 'whoosh', emoji: '🌬️' },
+    { sound: 'clap clap', emoji: '👏' },
+    { sound: 'beep beep', emoji: '🚛' },
+    { sound: 'splash', emoji: '🌊' },
+    { sound: 'crunch', emoji: '🍁' },
+  ]
+  
+  // Select 3 random examples
+  const randomExamples = useMemo(() => {
+    const shuffled = [...soundExamples].sort(() => 0.5 - Math.random())
+    return shuffled.slice(0, 3)
+  }, [])
 
   const [session, setSession] = useState<any>(null)
   // Environment variables (baked at build time). In GitHub Pages workflow you must provide them.
@@ -345,7 +367,7 @@ function App() {
               <>
                 <h2 className="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight">Imitate the sound that's in your mind 🎙️</h2>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span className="font-bold">Stuck?</span> Try <em>boooom</em> 💥, <em>woof woof</em> 🐶, or <em>weeeeoooo</em> 🚨
+                  <span className="font-bold">Stuck?</span> Try <em>{randomExamples[0].sound}</em> {randomExamples[0].emoji}, <em>{randomExamples[1].sound}</em> {randomExamples[1].emoji}, or <em>{randomExamples[2].sound}</em> {randomExamples[2].emoji}
                 </p>
                 {/* Removed transient processing text to avoid layout shift */}
               </>
