@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import soundalikeLogo from './assets/soundalike.svg'
 import Recorder from './components/Recorder'
@@ -16,11 +16,10 @@ function App() {
   const [processingEmbedding, setProcessingEmbedding] = useState(false)
   const [hasValidAudio, setHasValidAudio] = useState(false)
   const [lastRecordingBlob, setLastRecordingBlob] = useState<Blob | null>(null)
-  const [submittingRatings, setSubmittingRatings] = useState(false)
-  const [ratingsSubmitted, setRatingsSubmitted] = useState(false)
   const [hasConsent, setHasConsent] = useState(false)
   const [showConsent, setShowConsent] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
+  const [submittedAudioId, setSubmittedAudioId] = useState<string | null>(null)
   const [pendingRatingsData, setPendingRatingsData] = useState<{ urls: string[]; ratings: (-1 | 0 | 1)[] } | null>(null)
   const [hasReadDocuments, setHasReadDocuments] = useState(true)
   const [hasAgreedToConsent, setHasAgreedToConsent] = useState(true)
@@ -104,27 +103,21 @@ function App() {
       const stored = localStorage.getItem('imitune_feedback_consent_v1')
       if (stored === 'true') setHasConsent(true)
     } catch {}
-    console.log('[Init] Derived endpoints:', { apiUrl, feedbackUrl, backendBase, rawApiSearchUrl, modelUrl })
     if (!apiUrl) {
       console.warn('Search API URL is undefined. Set VITE_API_URL or VITE_BACKEND_BASE.')
     }
     if (!feedbackUrl) {
       console.warn('Feedback API URL is undefined. Set VITE_FEEDBACK_URL, VITE_BACKEND_BASE, or VITE_API_URL ending in /api/search.')
     }
-    console.log('Model URL (resolved):', modelUrl)
-    console.log('Testing model URL accessibility...')
     fetch(modelUrl, { method: 'HEAD' })
       .then(response => {
-        console.log('Model URL test response:', response.status, response.headers.get('content-type'))
         if (!response.ok) {
           throw new Error(`Model not accessible: ${response.status}`)
         }
-        console.log('Model URL accessible, loading session...')
         return loadSession(modelUrl)
       })
       .then((s) => {
         if (mounted) {
-          console.log('Session loaded successfully:', s)
           setSession(s)
         }
       })
@@ -141,21 +134,11 @@ function App() {
   useEffect(() => {
     const processDelayedEmbedding = async () => {
       if (session && hasValidAudio && !embedding && lastRecordingBlob && !processingEmbedding) {
-        console.log('Session now available, processing pending recording...')
         try {
           setProcessingEmbedding(true)
           const mono = await audioBlobToMonoFloat32(lastRecordingBlob, 32000)
           const { vector } = await runEmbedding(session, mono)
           setEmbedding(vector)
-          console.log('Delayed embedding extracted:', {
-            length: vector.length,
-            first5: Array.from(vector.slice(0, 5)),
-            stats: {
-              min: Math.min(...vector),
-              max: Math.max(...vector),
-              mean: vector.reduce((a, b) => a + b, 0) / vector.length
-            }
-          })
         } catch (e) {
           console.error('Error processing delayed embedding:', e)
           setError(`Failed to process embedding: ${String(e)}`)
@@ -168,19 +151,16 @@ function App() {
   }, [session, hasValidAudio, embedding, lastRecordingBlob, processingEmbedding])
 
   const onRecorded = async (rec: Recording) => {
-    console.log('onRecorded called with:', rec)
     setError(null)
     setResults([])
     setEmbedding(null)
     setHasValidAudio(false) // Reset audio validation
-    setRatingsSubmitted(false)
     setLastRecordingBlob(rec.blob)
+    setSubmittedAudioId(null) // Reset audioId for new query
     
     // Always validate audio content first, regardless of session state
     try {
-      console.log('Validating audio content...')
       const mono = await audioBlobToMonoFloat32(rec.blob, 32000) // Downsample to 32kHz
-      console.log('Audio converted, mono length:', mono.length)
       
       // Check if audio has meaningful content
       const threshold = 0.01
@@ -193,39 +173,24 @@ function App() {
       }
       
       if (!hasContent) {
-        console.log('Audio appears to be empty/silent')
         setError('Recording appears to be empty or too quiet. Please try recording again.')
         return
       }
       
-      console.log('Audio has content, marked as valid')
       setHasValidAudio(true) // Mark audio as valid immediately after validation
       
       // Process embedding if session is available
       if (session) {
-        console.log('Session available, processing embedding...')
         try {
           setProcessingEmbedding(true)
-          console.log('Running embedding with 32kHz sample rate')
           const { vector } = await runEmbedding(session, mono)
           setEmbedding(vector)
-          console.log('Embedding extracted:', {
-            length: vector.length,
-            first5: Array.from(vector.slice(0, 5)),
-            stats: {
-              min: Math.min(...vector),
-              max: Math.max(...vector),
-              mean: vector.reduce((a, b) => a + b, 0) / vector.length
-            }
-          })
         } catch (e) {
           console.error('Error processing embedding:', e)
           setError(`Failed to process embedding: ${String(e)}`)
         } finally {
           setProcessingEmbedding(false)
         }
-      } else {
-        console.log('Session not yet available, will process embedding when session loads')
       }
     } catch (e) {
       console.error('Error validating audio:', e)
@@ -238,7 +203,7 @@ function App() {
     try {
       setLoading(true)
   const urls = await searchByEmbedding(apiUrl, embedding)
-  setRatingsSubmitted(false) // allow new rating round for fresh results
+  setSubmittedAudioId(null) // Reset audioId for new search results
   setResults(urls)
     } catch (e) {
       setError(String(e))
@@ -249,33 +214,45 @@ function App() {
 
   const handleSubmitRatings = async (data: { urls: string[]; ratings: (-1 | 0 | 1)[] }) => {
     if (!feedbackUrl) {
-      setError('Feedback endpoint not configured.')
+      console.warn('Feedback endpoint not configured.')
       return
     }
     try {
-      setSubmittingRatings(true)
-      setError(null)
-      // Convert audio blob to base64 data URL
-      if (!lastRecordingBlob) throw new Error('No recorded audio available')
-      const audioBase64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result as string)
-        reader.onerror = reject
-        reader.readAsDataURL(lastRecordingBlob)
-      })
       // Map ratings to API spec (like/dislike/null)
       const mappedRatings = data.ratings.map(r => r === 1 ? 'like' : r === 0 ? 'dislike' : null) as ("like"|"dislike"|null)[]
       const freesoundUrls = data.urls.map(u => u || null)
-  await submitFeedback(feedbackUrl, {
-        audioQuery: audioBase64,
-        freesound_urls: freesoundUrls,
-        ratings: mappedRatings
-      })
-      setRatingsSubmitted(true)
+      
+      let response
+      if (submittedAudioId) {
+        // Update existing submission using audioId reference
+        response = await submitFeedback(feedbackUrl, {
+          audioId: submittedAudioId,
+          freesound_urls: freesoundUrls,
+          ratings: mappedRatings
+        })
+      } else {
+        // First submission - include audio
+        if (!lastRecordingBlob) {
+          console.warn('No recorded audio available')
+          return
+        }
+        const audioBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.onerror = reject
+          reader.readAsDataURL(lastRecordingBlob)
+        })
+        response = await submitFeedback(feedbackUrl, {
+          audioQuery: audioBase64,
+          freesound_urls: freesoundUrls,
+          ratings: mappedRatings
+        })
+        // Store audioId for future updates
+        setSubmittedAudioId(response.audioId)
+      }
     } catch (e:any) {
-      setError(e.message || 'Failed to submit ratings')
-    } finally {
-      setSubmittingRatings(false)
+      console.error('Failed to submit ratings:', e.message)
+      // Silently fail to keep UX smooth
     }
   }
 
@@ -396,8 +373,7 @@ function App() {
             </div>
 
             <div className="mt-4">
-              <Results results={results} submitted={ratingsSubmitted} submitting={submittingRatings} onSubmitRatings={requestSubmitRatings} />
-              {/* {ratingsSubmitted && <p className="mt-4 text-sm text-green-600">Thanks! Ratings submitted.</p>} */}
+              <Results results={results} onSubmitRatings={requestSubmitRatings} />
             </div>
           </section>
         )}

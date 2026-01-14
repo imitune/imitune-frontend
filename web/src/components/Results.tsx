@@ -6,8 +6,6 @@ type Rating = -1 | 0 | 1
 type Props = {
   results: SearchResult[]
   onSubmitRatings?: (ratings: { urls: string[]; ratings: Rating[] }) => void
-  submitted?: boolean
-  submitting?: boolean
 }
 
 // Extract sound ID from Freesound URL
@@ -17,7 +15,7 @@ function extractSoundId(freesoundUrl: string): string | null {
   return match ? match[1] : null
 }
 
-export default function Results({ results, onSubmitRatings, submitted = false, submitting = false }: Props) {
+export default function Results({ results, onSubmitRatings }: Props) {
   if (!results.length) {
     return <p className="text-sm text-slate-600">No results yet. Record and search.</p>
   }
@@ -27,13 +25,13 @@ export default function Results({ results, onSubmitRatings, submitted = false, s
     setRatings(results.map(() => -1))
   }, [results])
 
-  const anyRated = ratings.some(r => r !== -1)
   const handleRate = (idx: number, value: Rating) => {
-    setRatings(prev => prev.map((r, i) => (i === idx ? value : r)))
-  }
-  const handleSubmit = () => {
-    if (!onSubmitRatings) return
-    onSubmitRatings({ urls: results.map(r => r.freesound_url), ratings })
+    const newRatings = ratings.map((r, i) => (i === idx ? value : r))
+    setRatings(newRatings)
+    // Auto-submit when user interacts with ratings
+    if (onSubmitRatings) {
+      onSubmitRatings({ urls: results.map(r => r.freesound_url), ratings: newRatings })
+    }
   }
   
   return (
@@ -115,21 +113,6 @@ export default function Results({ results, onSubmitRatings, submitted = false, s
             </div>
           )
         })}
-      </div>
-  <div className="pt-1 min-h-0">
-        {!submitted && anyRated && (
-          <button
-            type="button"
-            onClick={handleSubmit}
-      disabled={submitting}
-            className={`green-glow-action-button rounded-xl px-4 py-2 text-sm font-medium text-black dark:text-white border border-slate-900 dark:border-slate-900 hover:opacity-90 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${anyRated && !submitting ? 'glow-active' : ''}`}
-          >
-      {submitting ? 'Submitting…' : 'Submit ratings'}
-          </button>
-        )}
-        {submitted && (
-          <p className="text-sm">Ratings submitted, thank you!</p>
-        )}
       </div>
     </div>
   )

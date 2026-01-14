@@ -15,35 +15,25 @@ export type InferenceConfig = {
 
 export async function loadSession(modelUrl: string) {
   try {
-    console.log('Creating ONNX session with URL:', modelUrl)
-    
-    // First, let's try to fetch and inspect the model file
     const response = await fetch(modelUrl)
     const arrayBuffer = await response.arrayBuffer()
-    console.log('Model file loaded, size:', arrayBuffer.byteLength, 'bytes')
     
-    // Try with minimal configuration first
     const session = await ort.InferenceSession.create(arrayBuffer, {
       executionProviders: ['wasm']
     })
-    console.log('Session created successfully, input names:', session.inputNames)
-    console.log('Session output names:', session.outputNames)
     return session
   } catch (error) {
-    console.error('Detailed session creation error:', error)
+    console.error('Session creation error:', error)
     // Try fallback with CPU provider
     try {
-      console.log('Trying fallback with CPU provider...')
       const response = await fetch(modelUrl)
       const arrayBuffer = await response.arrayBuffer()
       const session = await ort.InferenceSession.create(arrayBuffer, {
         executionProviders: ['cpu']
       })
-      console.log('Session created with CPU provider, input names:', session.inputNames)
-      console.log('Session output names:', session.outputNames)
       return session
     } catch (fallbackError) {
-      console.error('CPU fallback also failed:', fallbackError)
+      console.error('CPU fallback failed:', fallbackError)
       throw fallbackError
     }
   }
@@ -54,28 +44,18 @@ export async function audioBlobToMonoFloat32(blob: Blob, targetSampleRate: numbe
   const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
   const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer)
   
-  console.log('Original audio:', {
-    sampleRate: audioBuffer.sampleRate,
-    length: audioBuffer.length,
-    duration: audioBuffer.length / audioBuffer.sampleRate
-  })
-  
   // Use Web Audio API for proper resampling with anti-aliasing
   let processedAudio: Float32Array
   if (audioBuffer.sampleRate !== targetSampleRate) {
-    console.log(`Resampling from ${audioBuffer.sampleRate}Hz to ${targetSampleRate}Hz using Web Audio API`)
     processedAudio = await resampleAudioBuffer(audioBuffer, targetSampleRate)
-    console.log('Resampled audio length:', processedAudio.length)
   } else {
     // Still need to convert to mono if sample rates match
-    console.log('Sample rates match, converting to mono only')
     processedAudio = convertToMono(audioBuffer)
   }
   
   // Zero-pad to 10 seconds at target sample rate
   const targetLength = Math.round(targetSampleRate * 10)
   if (processedAudio.length < targetLength) {
-    console.log(`Zero-padding from ${processedAudio.length} to ${targetLength} samples`)
     const padded = new Float32Array(targetLength)
     padded.set(processedAudio)
     return padded
