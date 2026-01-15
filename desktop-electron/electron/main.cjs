@@ -1,5 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
+const log = require('electron-log')
+const { autoUpdater } = require('electron-updater')
 
 // Rule out GPU-related blank window issues
 app.disableHardwareAcceleration()
@@ -10,6 +12,26 @@ const BACKEND_BASE = process.env.BACKEND_BASE || DEFAULT_BACKEND_BASE
 
 // Must match an allowed origin in imitune-backend CORS validation
 const ALLOWED_ORIGIN_FOR_ELECTRON = 'https://thatsoundslike.me'
+
+log.initialize()
+autoUpdater.logger = log
+autoUpdater.autoDownload = true
+
+function setupAutoUpdates() {
+  autoUpdater.on('checking-for-update', () => log.info('[updater] checking-for-update'))
+  autoUpdater.on('update-available', (info) => log.info('[updater] update-available', info))
+  autoUpdater.on('update-not-available', (info) => log.info('[updater] update-not-available', info))
+  autoUpdater.on('download-progress', (p) => log.info('[updater] download-progress', p))
+  autoUpdater.on('update-downloaded', (info) => {
+    log.info('[updater] update-downloaded', info)
+    // Default behavior: install on quit (safer than forcing a restart mid-session)
+  })
+  autoUpdater.on('error', (err) => log.error('[updater] error', err))
+
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdatesAndNotify().catch((e) => log.error('[updater] check failed', e))
+  }
+}
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -101,6 +123,7 @@ ipcMain.handle('api:feedback', async (_evt, payload) => {
 
 app.whenReady().then(() => {
   createWindow()
+  setupAutoUpdates()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })

@@ -1,15 +1,20 @@
 {
   "name": "thatsoundslike-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "main": "electron/main.cjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chymaera96/imitune-front-mockup.git"
+  },
   "scripts": {
     "dev:web": "cd ../web && npm run dev",
     "dev:electron": "electron .",
     "dev": "concurrently -k \"npm run dev:web\" \"npm run dev:electron\"",
     "build:web": "cd ../web && npm run build -- -c vite.electron.config.ts",
     "dist": "npm run build:web && electron-builder",
-    "package": "npm run build:web && electron-builder --dir"
+    "package": "npm run build:web && electron-builder --dir",
+    "release":"npm run build:web && electron-builder --publish always"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
@@ -19,7 +24,9 @@
   "build": {
     "appId": "me.thatsoundslike.app",
     "productName": "ThatSoundsLike",
-    "directories": { "output": "dist" },
+    "directories": {
+      "output": "dist"
+    },
     "files": [
       "electron/**/*"
     ],
@@ -31,8 +38,22 @@
     ],
     "mac": {
       "icon": "electron/resources/microphone.icns",
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "category": "public.app-category.music"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "chymaera96",
+        "repo": "imitune-front-mockup"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.7.3"
   }
 }
