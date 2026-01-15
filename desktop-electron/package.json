@@ -30,6 +30,7 @@
       }
     ],
     "mac": {
+      "icon": "electron/resources/microphone.icns",
       "target": ["dmg", "zip"],
       "category": "public.app-category.music"
     }
