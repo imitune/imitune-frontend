@@ -1,0 +1,37 @@
+{
+  "name": "thatsoundslike-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev:web": "cd ../web && npm run dev",
+    "dev:electron": "electron .",
+    "dev": "concurrently -k \"npm run dev:web\" \"npm run dev:electron\"",
+    "build:web": "cd ../web && npm run build -- -c vite.electron.config.ts",
+    "dist": "npm run build:web && electron-builder",
+    "package": "npm run build:web && electron-builder --dir"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^39.2.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "me.thatsoundslike.app",
+    "productName": "ThatSoundsLike",
+    "directories": { "output": "dist" },
+    "files": [
+      "electron/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../web/dist-electron",
+        "to": "web/dist-electron"
+      }
+    ],
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.music"
+    }
+  }
+}

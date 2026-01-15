@@ -13,7 +13,8 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'https://imitune-backend-qugw2srzk-chris-projects-chris-projects-3c0d9932.vercel.app',
+        // target: 'https://imitune-backend-qugw2srzk-chris-projects-chris-projects-3c0d9932.vercel.app',
+        target: 'https://imitune-backend-steel.vercel.app',
         changeOrigin: true,
         secure: true,
       },
