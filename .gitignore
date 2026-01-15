@@ -12,9 +12,8 @@ lerna-debug.log*
 .Trashes
 ehthumbs.db
 Thumbs.db
-/web/node_modules
-/desktop/node_modules
-/desktop/src-tauri/gen
-/desktop/src-tauri/target
-/desktop/src-tauri/Cargo.lock
-/desktop/src-tauri/target/release/bundle/
+web/node_modules/
+web/dist-electron/
+web/node_modules/
+desktop-electron/node_modules/
+desktop-electron/dist/
