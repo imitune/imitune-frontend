@@ -13,11 +13,19 @@ const BACKEND_BASE = process.env.BACKEND_BASE || DEFAULT_BACKEND_BASE
 // Must match an allowed origin in imitune-backend CORS validation
 const ALLOWED_ORIGIN_FOR_ELECTRON = 'https://thatsoundslike.me'
 
-log.initialize()
-autoUpdater.logger = log
-autoUpdater.autoDownload = true
+// Hold auto-update setup for later. Default OFF to avoid breaking stable builds
+// in environments without proper macOS signing/notarization.
+const ENABLE_AUTO_UPDATES = process.env.ENABLE_AUTO_UPDATES === 'true'
+
+if (ENABLE_AUTO_UPDATES) {
+  log.initialize()
+  autoUpdater.logger = log
+  autoUpdater.autoDownload = true
+}
 
 function setupAutoUpdates() {
+  if (!ENABLE_AUTO_UPDATES) return
+
   autoUpdater.on('checking-for-update', () => log.info('[updater] checking-for-update'))
   autoUpdater.on('update-available', (info) => log.info('[updater] update-available', info))
   autoUpdater.on('update-not-available', (info) => log.info('[updater] update-not-available', info))

@@ -1,11 +1,11 @@
 {
   "name": "thatsoundslike-desktop",
-  "version": "1.0.2",
+  "version": "1.0.0",
   "private": true,
   "main": "electron/main.cjs",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chymaera96/imitune-front-mockup.git"
+    "url": "https://github.com/imitune/imitune-frontend.git"
   },
   "scripts": {
     "dev:web": "cd ../web && npm run dev",
@@ -13,8 +13,7 @@
     "dev": "concurrently -k \"npm run dev:web\" \"npm run dev:electron\"",
     "build:web": "cd ../web && npm run build -- -c vite.electron.config.ts",
     "dist": "npm run build:web && electron-builder",
-    "package": "npm run build:web && electron-builder --dir",
-    "release":"npm run build:web && electron-builder --publish always"
+    "package": "npm run build:web && electron-builder --dir"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
@@ -43,14 +42,7 @@
         "zip"
       ],
       "category": "public.app-category.music"
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "chymaera96",
-        "repo": "imitune-front-mockup"
-      }
-    ]
+    }
   },
   "dependencies": {
     "electron-log": "^5.4.3",
