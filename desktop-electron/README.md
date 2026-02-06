@@ -73,6 +73,30 @@ cd desktop-electron
 npm run package
 ```
 
+## MuseHub distribution (macOS)
+
+MuseHub requirements that affect this app:
+
+- The app must open without a login or license screen. If you need accounts, integrate the Muse SDK and sign users in behind the scenes.
+- Paid products typically require Muse DRM, but Electron apps should use the Muse SDK instead of Muse DRM.
+- Code-sign and notarize the final app bundle.
+
+Recommended upload format:
+
+- Upload a ZIP of the .app bundle. A DMG is allowed, but if it is not notarized it can run under app translocation.
+- If you use a .pkg installer, MuseHub can install it silently, but the Hub cannot uninstall apps delivered by .pkg.
+
+MuseHub metadata you will need:
+
+- Bundle ID (from the app Info.plist). This should match the electron-builder appId in desktop-electron/package.json (currently me.thatsoundslike.app).
+- Icon image for the product listing (separate from the app icon; provide a 300x300 PNG or JPG in the Partner Portal).
+
+Suggested macOS submission flow for this app:
+
+1) Build the app: npm run dist
+2) Code-sign and notarize the generated .app bundle.
+3) Zip the notarized .app (preferred) and upload that ZIP to MuseHub.
+
 ## How it works
 
 - `electron/preload.cjs` exposes `window.electronAPI` with:
