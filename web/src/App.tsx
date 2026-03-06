@@ -56,7 +56,7 @@ function App() {
     { sound: 'rattle rattle', emoji: '🪇' },
     { sound: 'skreeech', emoji: '🦅' },
     { sound: 'splash', emoji: '🌊' },
-    { sound: 'thud', emoji: '🪨' },,
+    { sound: 'thud', emoji: '🪨' },
     { sound: 'tick tock', emoji: '🕰️' },
     { sound: 'whoosh', emoji: '🌬️' },
     { sound: 'wooo', emoji: '🍃' },
@@ -68,7 +68,10 @@ function App() {
   // Select 3 random examples
   const randomExamples = useMemo(() => {
     const shuffled = [...soundExamples].sort(() => 0.5 - Math.random())
-    return shuffled.slice(0, 3)
+    const first = shuffled[0] ?? soundExamples[0]!
+    const second = shuffled[1] ?? soundExamples[1] ?? first
+    const third = shuffled[2] ?? soundExamples[2] ?? second
+    return [first, second, third] as const
   }, [])
 
   const [session, setSession] = useState<any>(null)
