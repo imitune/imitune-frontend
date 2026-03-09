@@ -43,6 +43,7 @@ Search audio samples by audio imitation. Record up to 10 seconds, run an ONNX em
    ```bash
    echo "VITE_API_URL=https://your-vercel-app.vercel.app/api/search" >> .env.local
    echo "VITE_MODEL_URL=/model.onnx" >> .env.local
+   echo "VITE_ENABLE_DEV_MODE=false" >> .env.local
    ```
 
 4. Run dev server:
@@ -77,6 +78,24 @@ export default defineConfig({
 ```
 
 An example GitHub Actions workflow is committed at `.github/workflows/gh-pages.yml`. After pushing to `main`, enable Pages in your repo settings (Source: GitHub Actions) and set the custom domain/path as needed.
+
+### Optional comparison page
+
+The app supports an optional comparison page at `/dev` that runs one embedding against multiple Pinecone indexes and shows one row per index.
+
+- Frontend switch: set `VITE_ENABLE_DEV_MODE=true` to expose `/dev`
+- Backend switch: set `ENABLE_DEV_MODE=true` on the Vercel deployment that serves `/api/search`
+- Normal mode at `/` keeps working regardless of whether dev mode is on or off
+
+GitHub Pages note: the workflow copies `dist/index.html` to `dist/404.html` so direct requests to `/dev` still boot the SPA correctly.
+
+Recommended frontend envs for comparison mode:
+
+```bash
+VITE_BACKEND_BASE=https://your-vercel-app.vercel.app
+VITE_MODEL_URL=/model.onnx
+VITE_ENABLE_DEV_MODE=true
+```
 
 ## Vercel Function (API) Shape
 

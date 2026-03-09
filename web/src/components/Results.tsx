@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { SearchResult } from '../lib/api/search'
 
-type Rating = -1 | 0 | 1
+export type Rating = -1 | 0 | 1
 
 type Props = {
   results: SearchResult[]
+  ratings?: Rating[]
+  onRatingsChange?: (ratings: Rating[]) => void
   onSubmitRatings?: (ratings: { urls: string[]; ratings: Rating[] }) => void
 }
 
@@ -15,19 +17,27 @@ function extractSoundId(freesoundUrl: string): string | null {
   return match ? match[1] : null
 }
 
-export default function Results({ results, onSubmitRatings }: Props) {
+export default function Results({ results, ratings: controlledRatings, onRatingsChange, onSubmitRatings }: Props) {
   if (!results.length) {
     return <p className="text-sm text-slate-600">No results yet. Record and search.</p>
   }
-  const [ratings, setRatings] = useState<Rating[]>(() => results.map(() => -1))
+  const [internalRatings, setInternalRatings] = useState<Rating[]>(() => results.map(() => -1))
+  const isControlled = controlledRatings !== undefined
+  const ratings = controlledRatings ?? internalRatings
+
   // Reset ratings when results change
   useEffect(() => {
-    setRatings(results.map(() => -1))
-  }, [results])
+    if (!isControlled) {
+      setInternalRatings(results.map(() => -1))
+    }
+  }, [results, isControlled])
 
   const handleRate = (idx: number, value: Rating) => {
     const newRatings = ratings.map((r, i) => (i === idx ? value : r))
-    setRatings(newRatings)
+    if (!isControlled) {
+      setInternalRatings(newRatings)
+    }
+    onRatingsChange?.(newRatings)
     // Auto-submit when user interacts with ratings
     if (onSubmitRatings) {
       onSubmitRatings({ urls: results.map(r => r.freesound_url), ratings: newRatings })
@@ -38,9 +48,8 @@ export default function Results({ results, onSubmitRatings }: Props) {
     <div className="space-y-4">
       {/* <p className="text-sm text-slate-600">Found {results.length} matching sounds</p> */}
   <div className="grid gap-3 md:grid-cols-3">
-        {results.map((result) => {
+        {results.map((result, idx) => {
           const soundId = extractSoundId(result.freesound_url)
-      const idx = results.indexOf(result)
       const current = ratings[idx]
       // Visual scale factor to "zoom out" the embedded Freesound player without needing an alternate embed size
   const playerScale = 0.85 // adjust between 0.5 - 0.85 if you want smaller or larger

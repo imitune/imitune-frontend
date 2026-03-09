@@ -1,9 +1,26 @@
+export type RatingValue = -1 | 0 | 1
+
+export type FeedbackResultContext = {
+  route: 'default' | 'dev'
+  indexId?: string
+  indexLabel?: string
+  rank: number
+  freesound_url?: string
+}
+
+export type RatingSubmission = {
+  urls: string[]
+  ratings: RatingValue[]
+  resultContexts?: (FeedbackResultContext | null)[]
+}
+
 // Feedback API types (per backend spec)
 export type FeedbackRequestBody = {
   audioQuery?: string // data URL: data:audio/webm;base64,<...> (required for first submission)
   audioId?: string // reference to existing audio (for updates)
   freesound_urls: (string | null)[] // length 3
   ratings: ("like" | "dislike" | null)[] // length 3
+  result_contexts?: (FeedbackResultContext | null)[]
 }
 
 export type FeedbackResponse = {

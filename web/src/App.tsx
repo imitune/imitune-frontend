@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import soundalikeLogo from './assets/soundalike.svg'
+import DevResults from './components/DevResults'
 import Recorder from './components/Recorder'
 import Results from './components/Results'
-import { submitFeedback } from './lib/api/ratings'
-import { searchByEmbedding, type SearchResult } from './lib/api/search'
+import { submitFeedback, type RatingSubmission } from './lib/api/ratings'
+import { searchAcrossIndexes, searchByEmbedding, type MultiIndexSearchRow, type SearchResult } from './lib/api/search'
 import type { Recording } from './lib/audio/recorder'
 import { audioBlobToMonoFloat32, loadSession, runEmbedding } from './lib/model/embedding'
 
 function App() {
   const [results, setResults] = useState<SearchResult[]>([])
+  const [devRows, setDevRows] = useState<MultiIndexSearchRow[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [embedding, setEmbedding] = useState<Float32Array | null>(null)
@@ -20,10 +22,21 @@ function App() {
   const [showConsent, setShowConsent] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
   const [submittedAudioId, setSubmittedAudioId] = useState<string | null>(null)
-  const [pendingRatingsData, setPendingRatingsData] = useState<{ urls: string[]; ratings: (-1 | 0 | 1)[] } | null>(null)
+  const [pendingRatingsData, setPendingRatingsData] = useState<RatingSubmission | null>(null)
   const [hasReadDocuments, setHasReadDocuments] = useState(true)
   const [hasAgreedToConsent, setHasAgreedToConsent] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const devModeEnabled = ((import.meta.env.VITE_ENABLE_DEV_MODE as string | undefined) ?? 'false').toLowerCase() === 'true'
+  const normalizedBasePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/$/, '')
+  const normalizedPathname = window.location.pathname.replace(/\/+$/, '') || '/'
+  const routePath = normalizedBasePath && normalizedPathname.startsWith(normalizedBasePath)
+    ? normalizedPathname.slice(normalizedBasePath.length) || '/'
+    : normalizedPathname
+  const isDevRoute = routePath === '/dev'
+  const isDevPage = devModeEnabled && isDevRoute
+  const homeHref = import.meta.env.BASE_URL
+  const devHref = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/dev`
+  const isUnavailableDevRoute = isDevRoute && !devModeEnabled
   
   // List of sound examples with emojis
   const soundExamples = [
@@ -180,6 +193,7 @@ function App() {
   const onRecorded = async (rec: Recording) => {
     setError(null)
     setResults([])
+    setDevRows([])
     setEmbedding(null)
     setHasValidAudio(false) // Reset audio validation
     setLastRecordingBlob(rec.blob)
@@ -228,10 +242,20 @@ function App() {
   const onSearch = async () => {
     if (!embedding || !apiUrl) return
     try {
+      setError(null)
       setLoading(true)
-  const urls = await searchByEmbedding(apiUrl, embedding)
-  setSubmittedAudioId(null) // Reset audioId for new search results
-  setResults(urls)
+      setSubmittedAudioId(null) // Reset audioId for new search results
+
+      if (isDevPage) {
+        const response = await searchAcrossIndexes(apiUrl, embedding)
+        setResults([])
+        setDevRows(response.rows)
+        return
+      }
+
+      const urls = await searchByEmbedding(apiUrl, embedding)
+      setDevRows([])
+      setResults(urls)
     } catch (e) {
       setError(String(e))
     } finally {
@@ -239,7 +263,7 @@ function App() {
     }
   }
 
-  const handleSubmitRatings = async (data: { urls: string[]; ratings: (-1 | 0 | 1)[] }) => {
+  const handleSubmitRatings = async (data: RatingSubmission) => {
     if (!feedbackUrl) {
       console.warn('Feedback endpoint not configured.')
       return
@@ -255,7 +279,8 @@ function App() {
         response = await submitFeedback(feedbackUrl, {
           audioId: submittedAudioId,
           freesound_urls: freesoundUrls,
-          ratings: mappedRatings
+          ratings: mappedRatings,
+          result_contexts: data.resultContexts,
         })
       } else {
         // First submission - include audio
@@ -272,7 +297,8 @@ function App() {
         response = await submitFeedback(feedbackUrl, {
           audioQuery: audioBase64,
           freesound_urls: freesoundUrls,
-          ratings: mappedRatings
+          ratings: mappedRatings,
+          result_contexts: data.resultContexts,
         })
         // Store audioId for future updates
         setSubmittedAudioId(response.audioId)
@@ -284,8 +310,8 @@ function App() {
   }
 
   // Gatekeeper that checks consent before actually submitting
-  const requestSubmitRatings = (data: { urls: string[]; ratings: (-1 | 0 | 1)[] }) => {
-  if (hasConsent) {
+  const requestSubmitRatings = (data: RatingSubmission) => {
+    if (hasConsent) {
       void handleSubmitRatings(data)
     } else {
       setPendingRatingsData(data)
@@ -364,21 +390,61 @@ function App() {
           </button>
         </header>
 
+        <div className="mb-5 flex justify-center gap-2 lg:justify-end">
+          <a
+            href={homeHref}
+            className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${!isDevRoute ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900' : 'border-slate-300 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-[#202020]'}`}
+          >
+            Main search
+          </a>
+          {devModeEnabled && (
+            <a
+              href={devHref}
+              className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${isDevPage ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900' : 'border-slate-300 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-[#202020]'}`}
+            >
+              Compare indexes
+            </a>
+          )}
+        </div>
+
+        {isUnavailableDevRoute ? (
+          <section className="mb-6 rounded-xl border border-slate-900 p-6 dark:border-slate-900">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Dev comparison mode is disabled on this deployment.</h2>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+              Set <code>VITE_ENABLE_DEV_MODE=true</code> in the frontend build and <code>ENABLE_DEV_MODE=true</code> in the backend deployment to enable the /dev comparison page.
+            </p>
+            <div className="mt-4">
+              <a href={homeHref} className="text-sm font-medium text-sky-600 hover:underline dark:text-sky-400">Return to the main search</a>
+            </div>
+          </section>
+        ) : (
+          <>
+
         <section className="mb-5 rounded-xl border border-slate-900 dark:border-slate-900 p-6">
           <Recorder
             onRecorded={onRecorded}
             centerContent={
               <>
-                <h2 className="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight">Imitate the sound that's in your mind 🎙️</h2>
+                <h2 className="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight">
+                  {isDevPage ? 'Compare all configured retrieval indexes 🎙️' : "Imitate the sound that's in your mind 🎙️"}
+                </h2>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span className="font-bold">Stuck?</span> Try <em>{randomExamples[0].sound}</em> {randomExamples[0].emoji}, <em>{randomExamples[1].sound}</em> {randomExamples[1].emoji}, or <em>{randomExamples[2].sound}</em> {randomExamples[2].emoji}
+                  {isDevPage ? (
+                    <>
+                      We will run one embedding against all configured Pinecone indexes and show the top matches side by side. Try <em>{randomExamples[0].sound}</em> {randomExamples[0].emoji}, <em>{randomExamples[1].sound}</em> {randomExamples[1].emoji}, or <em>{randomExamples[2].sound}</em> {randomExamples[2].emoji}
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-bold">Stuck?</span> Try <em>{randomExamples[0].sound}</em> {randomExamples[0].emoji}, <em>{randomExamples[1].sound}</em> {randomExamples[1].emoji}, or <em>{randomExamples[2].sound}</em> {randomExamples[2].emoji}
+                    </>
+                  )}
                 </p>
                 {/* Removed transient processing text to avoid layout shift */}
               </>
             }
             extraButton={
-              <button className={`yellow-glow-action-button flex w-full items-center justify-center rounded-xl border border-slate-900 dark:border-slate-900 px-4 py-2 text-base font-medium text-black dark:text-white hover:opacity-90 disabled:opacity-50 md:w-auto ${embedding && hasValidAudio && !loading && !processingEmbedding && results.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !hasValidAudio || !apiUrl || processingEmbedding} onClick={onSearch}>
-                {loading ? 'Searching…' : processingEmbedding ? 'Processing…' : 'Search ✨'}
+              <button className={`yellow-glow-action-button flex w-full items-center justify-center rounded-xl border border-slate-900 dark:border-slate-900 px-4 py-2 text-base font-medium text-black dark:text-white hover:opacity-90 disabled:opacity-50 md:w-auto ${embedding && hasValidAudio && !loading && !processingEmbedding && results.length === 0 && devRows.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !hasValidAudio || !apiUrl || processingEmbedding} onClick={onSearch}>
+                {loading ? (isDevPage ? 'Comparing…' : 'Searching…') : processingEmbedding ? 'Processing…' : (isDevPage ? 'Compare indexes ✨' : 'Search ✨')}
               </button>
             }
           />
@@ -388,7 +454,7 @@ function App() {
           {/* Audio preview handled by the in-box player; no native audio element */}
         </section>
 
-        {results.length > 0 && (
+        {!isDevPage && results.length > 0 && (
           <section className="results-enter mb-6 rounded-xl border border-slate-900 dark:border-slate-900 p-6">
             <div className="mb-4 flex items-baseline justify-center gap-3 text-center">
               <h2 className="text-sm md:text-base font-semibold text-slate-900 dark:text-slate-100 leading-tight">
@@ -403,6 +469,25 @@ function App() {
               <Results results={results} onSubmitRatings={requestSubmitRatings} />
             </div>
           </section>
+        )}
+
+        {isDevPage && devRows.length > 0 && (
+          <section className="results-enter mb-6 rounded-xl border border-slate-900 dark:border-slate-900 p-6">
+            <div className="mb-4 flex flex-col items-center gap-2 text-center">
+              <h2 className="text-sm md:text-base font-semibold text-slate-900 dark:text-slate-100 leading-tight">
+                Side-by-side comparison across all configured indexes
+              </h2>
+              <span className="text-xs md:text-sm font-normal text-slate-500 dark:text-slate-400 italic">
+                Ratings are stored with the source index so you can analyze which retrieval setup performs best.
+              </span>
+            </div>
+
+            <div className="mt-4">
+              <DevResults rows={devRows} onSubmitRatings={requestSubmitRatings} />
+            </div>
+          </section>
+        )}
+          </>
         )}
 
         {/* Credits Footer */}
