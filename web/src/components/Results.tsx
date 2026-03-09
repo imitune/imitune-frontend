@@ -8,20 +8,22 @@ type Props = {
   ratings?: Rating[]
   onRatingsChange?: (ratings: Rating[]) => void
   onSubmitRatings?: (ratings: { urls: string[]; ratings: Rating[] }) => void
+  embedMode?: 'eager' | 'manual'
 }
 
 // Extract sound ID from Freesound URL
 function extractSoundId(freesoundUrl: string): string | null {
-  // Match patterns like: https://freesound.org/people/username/sounds/123456/
-  const match = freesoundUrl.match(/\/sounds\/(\d+)\/?/)
+  // Support both canonical URLs and short URLs like https://freesound.org/s/123456/
+  const match = freesoundUrl.match(/\/(?:sounds|s)\/(\d+)\/?/)
   return match ? match[1] : null
 }
 
-export default function Results({ results, ratings: controlledRatings, onRatingsChange, onSubmitRatings }: Props) {
+export default function Results({ results, ratings: controlledRatings, onRatingsChange, onSubmitRatings, embedMode = 'eager' }: Props) {
   if (!results.length) {
     return <p className="text-sm text-slate-600">No results yet. Record and search.</p>
   }
   const [internalRatings, setInternalRatings] = useState<Rating[]>(() => results.map(() => -1))
+  const [loadedPlayers, setLoadedPlayers] = useState<boolean[]>(() => results.map(() => embedMode === 'eager'))
   const isControlled = controlledRatings !== undefined
   const ratings = controlledRatings ?? internalRatings
 
@@ -31,6 +33,10 @@ export default function Results({ results, ratings: controlledRatings, onRatings
       setInternalRatings(results.map(() => -1))
     }
   }, [results, isControlled])
+
+  useEffect(() => {
+    setLoadedPlayers(results.map(() => embedMode === 'eager'))
+  }, [results, embedMode])
 
   const handleRate = (idx: number, value: Rating) => {
     const newRatings = ratings.map((r, i) => (i === idx ? value : r))
@@ -42,6 +48,10 @@ export default function Results({ results, ratings: controlledRatings, onRatings
     if (onSubmitRatings) {
       onSubmitRatings({ urls: results.map(r => r.freesound_url), ratings: newRatings })
     }
+  }
+
+  const handleLoadPlayer = (idx: number) => {
+    setLoadedPlayers((previous) => previous.map((isLoaded, index) => (index === idx ? true : isLoaded)))
   }
   
   return (
@@ -64,26 +74,38 @@ export default function Results({ results, ratings: controlledRatings, onRatings
                   className="relative w-full overflow-hidden rounded border border-slate-900 dark:border-slate-900 bg-transparent"
                   style={{ height: scaledHeight }}
                 >
-                  <iframe
-                    frameBorder="0"
-                    scrolling="no"
-                    src={`https://freesound.org/embed/sound/iframe/${soundId}/simple/large/`}
-                    // Make iframe larger so that after scaling it still covers container width
-                    style={{
-                      transform: `scale(${playerScale})`,
-                      transformOrigin: 'top left',
-                      width: `${100 / playerScale}%`,
-                      height: basePlayerHeight,
-                      border: '0'
-                    }}
-                    title={`Sound ${soundId}`}
-                    allow="autoplay; encrypted-media"
-                    sandbox="allow-scripts allow-same-origin allow-presentation"
-                  />
+                  {loadedPlayers[idx] ? (
+                    <iframe
+                      frameBorder="0"
+                      scrolling="no"
+                      loading="lazy"
+                      src={`https://freesound.org/embed/sound/iframe/${soundId}/simple/large/`}
+                      // Make iframe larger so that after scaling it still covers container width
+                      style={{
+                        transform: `scale(${playerScale})`,
+                        transformOrigin: 'top left',
+                        width: `${100 / playerScale}%`,
+                        height: basePlayerHeight,
+                        border: '0'
+                      }}
+                      title={`Sound ${soundId}`}
+                      sandbox="allow-scripts allow-same-origin allow-presentation"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center bg-slate-50 dark:bg-[#202020]">
+                      <button
+                        type="button"
+                        onClick={() => handleLoadPlayer(idx)}
+                        className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                      >
+                        Load player
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="flex items-center justify-center rounded border bg-slate-50" style={{height: scaledHeight}}>
-                  <p className="text-sm text-slate-500">Unable to load player</p>
+                <div className="flex items-center justify-center rounded border bg-slate-50 px-4 text-center dark:bg-[#202020]" style={{height: scaledHeight}}>
+                  <p className="text-sm text-slate-500">Player unavailable for this Freesound URL format.</p>
                 </div>
               )}
               

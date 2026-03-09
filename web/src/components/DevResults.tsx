@@ -73,11 +73,17 @@ export default function DevResults({ rows, onSubmitRatings }: Props) {
           {row.error ? (
             <p className="text-sm text-red-600">{row.error}</p>
           ) : (
-            <Results
-              results={row.results}
-              ratings={ratingsByRow[row.indexId] ?? row.results.map(() => -1)}
-              onRatingsChange={(nextRatings) => handleRowRatingsChange(row, nextRatings)}
-            />
+            <>
+              <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+                Players load on demand in dev mode to keep the comparison page responsive.
+              </p>
+              <Results
+                results={row.results}
+                ratings={ratingsByRow[row.indexId] ?? row.results.map(() => -1)}
+                onRatingsChange={(nextRatings) => handleRowRatingsChange(row, nextRatings)}
+                embedMode="manual"
+              />
+            </>
           )}
         </section>
       ))}
