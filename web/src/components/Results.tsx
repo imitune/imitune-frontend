@@ -19,9 +19,6 @@ function extractSoundId(freesoundUrl: string): string | null {
 }
 
 export default function Results({ results, ratings: controlledRatings, onRatingsChange, onSubmitRatings, embedMode = 'eager' }: Props) {
-  if (!results.length) {
-    return <p className="text-sm text-slate-600">No results yet. Record and search.</p>
-  }
   const [internalRatings, setInternalRatings] = useState<Rating[]>(() => results.map(() => -1))
   const [loadedPlayers, setLoadedPlayers] = useState<boolean[]>(() => results.map(() => embedMode === 'eager'))
   const isControlled = controlledRatings !== undefined
@@ -53,11 +50,15 @@ export default function Results({ results, ratings: controlledRatings, onRatings
   const handleLoadPlayer = (idx: number) => {
     setLoadedPlayers((previous) => previous.map((isLoaded, index) => (index === idx ? true : isLoaded)))
   }
+
+  if (!results.length) {
+    return <p className="text-sm text-slate-600">No results yet. Record and search.</p>
+  }
   
   return (
     <div className="space-y-4">
       {/* <p className="text-sm text-slate-600">Found {results.length} matching sounds</p> */}
-  <div className="grid gap-3 md:grid-cols-3">
+  <div className="grid gap-3 md:grid-cols-2">
         {results.map((result, idx) => {
           const soundId = extractSoundId(result.freesound_url)
       const current = ratings[idx]

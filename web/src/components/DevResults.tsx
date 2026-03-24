@@ -98,7 +98,7 @@ export default function DevResults({ rows, onSubmitRatings }: Props) {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-4 py-3 dark:bg-[#202020]">
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Load all 3 players in this row on demand to keep the comparison page responsive.
+                      Load all 4 players in this row on demand to keep the comparison page responsive.
                     </p>
                     <button
                       type="button"
@@ -108,7 +108,7 @@ export default function DevResults({ rows, onSubmitRatings }: Props) {
                       Load row players
                     </button>
                   </div>
-                  <div className="grid gap-3 md:grid-cols-3">
+                  <div className="grid gap-3 md:grid-cols-2">
                     {row.results.map((result, index) => (
                       <div key={result.id} className="space-y-3">
                         <div className="flex items-center justify-center rounded border border-slate-900 bg-slate-50 px-4 text-center dark:border-slate-900 dark:bg-[#202020]" style={{ height: 208 }}>
