@@ -36,8 +36,14 @@ export async function searchByEmbedding(apiUrl: string, embedding: Float32Array)
   })
   
   if (!response.ok) {
-    const errorData = (await response.json()) as SearchError
-    throw new Error(`Search failed: ${errorData.error || `HTTP ${response.status}`}`)
+    let err = 'Search failed'
+    try {
+      const errorData = (await response.json()) as SearchError
+      if (errorData?.error) err = errorData.error
+    } catch {
+      // JSON parsing failed, use fallback
+    }
+    throw new Error(`${err} (HTTP ${response.status})`)
   }
   
   const data = (await response.json()) as SearchResponse
@@ -62,8 +68,14 @@ export async function searchAcrossIndexes(
   })
 
   if (!response.ok) {
-    const errorData = (await response.json()) as SearchError
-    throw new Error(`Search failed: ${errorData.error || `HTTP ${response.status}`}`)
+    let err = 'Multi-index search failed'
+    try {
+      const errorData = (await response.json()) as SearchError
+      if (errorData?.error) err = errorData.error
+    } catch {
+      // JSON parsing failed, use fallback
+    }
+    throw new Error(`${err} (HTTP ${response.status})`)
   }
 
   return (await response.json()) as MultiIndexSearchResponse
