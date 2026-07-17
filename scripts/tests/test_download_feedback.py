@@ -84,6 +84,13 @@ class FeedbackAnalysisTests(unittest.TestCase):
         self.assertEqual(stats["by_index"]["index-a"]["likes"], 1)
         self.assertEqual(stats["by_index"]["index-b"]["label"], "Model B")
         self.assertEqual(stats["by_rank"]["1"]["results"], 3)
+        self.assertEqual(stats["normal_mode"]["queries"], 1)
+        self.assertEqual(stats["normal_mode"]["inferred_queries"], 1)
+        self.assertEqual(stats["normal_mode"]["results"], 4)
+        self.assertEqual(stats["normal_mode"]["dislikes"], 1)
+        self.assertEqual(stats["normal_mode"]["by_rank"]["1"]["results"], 1)
+        self.assertEqual(stats["by_mode"]["dev"]["queries"], 1)
+        self.assertEqual(stats["by_mode"]["dev"]["results"], 4)
         self.assertEqual(stats["by_day"]["2026-01-02"]["queries"], 1)
         self.assertEqual(consolidated["pilot-query"]["audioUrl"], "https://example.test/pilot.webm")
 
@@ -105,6 +112,8 @@ class FeedbackAnalysisTests(unittest.TestCase):
         report = (output / "report.md").read_text(encoding="utf-8")
         self.assertEqual(report, build_markdown_report(stats))
         self.assertIn("Model A (`index-a`)", report)
+        self.assertIn("## Normal versus dev mode", report)
+        self.assertIn("## Normal/legacy ratings by rank", report)
 
     def test_missing_audio_url_can_be_recovered_from_blob_listing(self):
         consolidated = {
