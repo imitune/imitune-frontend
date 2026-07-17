@@ -1,11 +1,47 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import type { Recording } from '../lib/audio/recorder'
+import { audioBufferToWavBlob, type Recording } from '../lib/audio/recorder'
+import {
+  getDesktopMicrophoneStatus,
+  isDesktopApp,
+  isTauriApp,
+  openDesktopMicrophoneSettings,
+} from '../lib/desktop/runtime'
 
 type Props = {
   onRecorded?: (rec: Recording) => void
   maxSeconds?: number
   extraButton?: React.ReactNode
   centerContent?: React.ReactNode
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback
+}
+
+function preferredRecorderOptions(): MediaRecorderOptions | undefined {
+  if (!MediaRecorder.isTypeSupported) return undefined
+  const mimeType = ['audio/webm;codecs=opus', 'audio/webm']
+    .find(candidate => MediaRecorder.isTypeSupported(candidate))
+  return mimeType ? { mimeType } : undefined
+}
+
+function feedbackCompatibleBlob(blob: Blob, decodedAudio: AudioBuffer): Blob {
+  const supportedTypes = new Set(['audio/webm', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/mpeg'])
+  return supportedTypes.has(blob.type) ? blob : audioBufferToWavBlob(decodedAudio)
+}
+
+function mixToMono(buf: AudioBuffer): Float32Array {
+  const channelData = Array.from(
+    { length: buf.numberOfChannels },
+    (_, channel) => buf.getChannelData(channel),
+  )
+  const output = new Float32Array(buf.length)
+  for (let index = 0; index < buf.length; index += 1) {
+    let sum = 0
+    for (const channel of channelData) sum += channel[index]
+    output[index] = sum / channelData.length
+  }
+  return output
 }
 
 // Single record button component with post-record waveform + playback controls.
@@ -20,6 +56,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
   const [ready, setReady] = useState(false)
   const [requestingMic, setRequestingMic] = useState(false)
   const [micGranted, setMicGranted] = useState(false)
+  const [showMicSettings, setShowMicSettings] = useState(false)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -62,13 +99,22 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
       destroyWaveform()
       streamRef.current?.getTracks().forEach(t => t.stop())
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        try { mediaRecorderRef.current.stop() } catch {}
+        try {
+          mediaRecorderRef.current.stop()
+        } catch {
+          // The recorder may already be stopping during component teardown.
+        }
       }
       audioCtxRef.current?.close().catch(console.error);
     }
   }, [])
 
-  const drawWaveform = () => {
+  const updatePlayhead = useCallback((progress: number) => {
+    if (!playheadRef.current) return
+    playheadRef.current.style.left = `${(progress * 100).toFixed(4)}%`
+  }, [])
+
+  const drawWaveform = useCallback(() => {
     const audioBuf = audioBufferRef.current
     const canvas = canvasRef.current
     const wrapper = waveformContainerRef.current
@@ -187,26 +233,32 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
     
     setReady(true)
     updatePlayhead(0)
-  }
+  }, [updatePlayhead])
 
   const finalizeRecording = useCallback(async () => {
     setIsRecording(false)
     clearTimer()
-    const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+    const firstChunk = chunksRef.current.find((chunk): chunk is Blob => chunk instanceof Blob)
+    const rawMimeType = mediaRecorderRef.current?.mimeType || firstChunk?.type || 'audio/webm'
+    const mimeType = rawMimeType.split(';', 1)[0].toLowerCase()
+    const blob = new Blob(chunksRef.current, { type: mimeType })
     chunksRef.current = []
     const url = URL.createObjectURL(blob)
     objectUrlRef.current = url
     setAudioUrl(url)
     try {
       // Get sample rate + channels
-      const audioCtx = audioCtxRef.current ?? new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextConstructor = window.AudioContext || window.webkitAudioContext
+      if (!AudioContextConstructor) throw new Error('Web Audio is not supported in this environment.')
+      const audioCtx = audioCtxRef.current ?? new AudioContextConstructor()
       if (!audioCtxRef.current) audioCtxRef.current = audioCtx;
 
       const arrayBuf = await blob.arrayBuffer()
       const audioBuf = await audioCtx.decodeAudioData(arrayBuf)
       // Store the audio buffer for waveform processing
       audioBufferRef.current = audioBuf
-      const rec: Recording = { blob, url, sampleRate: audioBuf.sampleRate, numChannels: audioBuf.numberOfChannels }
+      const uploadBlob = feedbackCompatibleBlob(blob, audioBuf)
+      const rec: Recording = { blob: uploadBlob, url, sampleRate: audioBuf.sampleRate, numChannels: audioBuf.numberOfChannels }
       onRecorded?.(rec)
       // Prepare hidden audio element for playback control
       if (!audioElRef.current) {
@@ -224,14 +276,18 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
         setError("An error occurred during audio playback.");
       };
       drawWaveform()
-    } catch (e) {
+    } catch (decodeError) {
+      console.error('Failed to decode audio metadata:', decodeError)
       // Non-fatal if decode fails
       setError('Failed to decode audio metadata')
     }
 
-    // Keep stream alive for next recording - don't release tracks
+    // Release the device as soon as this take is complete so the operating
+    // system microphone indicator and capture session do not remain active.
+    streamRef.current?.getTracks().forEach(track => track.stop())
+    streamRef.current = null
     mediaRecorderRef.current = null
-  }, [onRecorded])
+  }, [drawWaveform, onRecorded, updatePlayhead])
 
   const startRecording = useCallback(async () => {
     if (!streamRef.current) {
@@ -248,7 +304,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
     chunksRef.current = []
     
     try {
-      const mediaRecorder = new MediaRecorder(streamRef.current)
+      const mediaRecorder = new MediaRecorder(streamRef.current, preferredRecorderOptions())
       mediaRecorderRef.current = mediaRecorder
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data)
@@ -259,6 +315,8 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
       mediaRecorder.onerror = (e) => {
         setError(e.error?.message || 'Recording error')
         setIsRecording(false)
+        streamRef.current?.getTracks().forEach(track => track.stop())
+        streamRef.current = null
       }
       mediaRecorder.start()
       setIsRecording(true)
@@ -266,9 +324,11 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
       timerRef.current = window.setTimeout(() => {
         if (mediaRecorder.state !== 'inactive') mediaRecorder.stop()
       }, maxSeconds * 1000)
-    } catch (e: any) {
-      setError(e?.message || 'Recording failed')
+    } catch (recordingError: unknown) {
+      setError(errorMessage(recordingError, 'Recording failed'))
       setIsRecording(false)
+      streamRef.current?.getTracks().forEach(track => track.stop())
+      streamRef.current = null
     }
   }, [finalizeRecording, maxSeconds])
 
@@ -290,12 +350,20 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
         setRequestingMic(true)
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
         streamRef.current = stream
+        const resumeRecording = micGranted
         setMicGranted(true)
+        setShowMicSettings(false)
         setRequestingMic(false)
-        // Don't start recording immediately, user needs to click again
+        // The first permission click remains permission-only. Once permission
+        // is established, re-recording can begin with a single click.
+        if (resumeRecording) await startRecording()
         return
-      } catch (e: any) {
-        setError(`Microphone access denied: ${e?.message || 'Unknown error'}`)
+      } catch (microphoneError: unknown) {
+        setError(`Microphone access denied: ${errorMessage(microphoneError, 'Unknown error')}`)
+        if (isDesktopApp()) {
+          const status = await getDesktopMicrophoneStatus().catch(() => 'unknown' as const)
+          setShowMicSettings(isTauriApp() || status === 'denied' || status === 'restricted')
+        }
         setRequestingMic(false)
         return
       }
@@ -326,11 +394,6 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
     }
   }
 
-  const updatePlayhead = (progress: number) => {
-    if (!playheadRef.current) return
-    playheadRef.current.style.left = `${(progress * 100).toFixed(4)}%`
-  }
-
   const startRAF = () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     const step = () => {
@@ -349,19 +412,7 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
     const onResize = () => drawWaveform()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [])
-
-  const mixToMono = (buf: AudioBuffer) => {
-    const chData = [] as Float32Array[]
-    for (let c = 0; c < buf.numberOfChannels; c++) chData.push(buf.getChannelData(c))
-    const out = new Float32Array(buf.length)
-    for (let i = 0; i < buf.length; i++) {
-      let sum = 0
-      for (let c = 0; c < chData.length; c++) sum += chData[c][i]
-      out[i] = sum / chData.length
-    }
-    return out
-  }
+  }, [drawWaveform])
 
   return (
     <div className="space-y-4">
@@ -466,7 +517,20 @@ const Recorder: React.FC<Props> = ({ onRecorded, maxSeconds = 10, extraButton, c
           <div ref={playheadRef} className="pointer-events-none absolute top-0 h-full w-px bg-green-600" />
         )}
       </div>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && (
+        <div className="flex flex-wrap items-center gap-2 text-xs text-red-600">
+          <p>{error}</p>
+          {showMicSettings && (
+            <button
+              type="button"
+              className="rounded border border-red-500 px-2 py-1 font-medium hover:bg-red-50 dark:hover:bg-red-950/30"
+              onClick={() => void openDesktopMicrophoneSettings()}
+            >
+              Open microphone settings
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

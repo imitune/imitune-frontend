@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { RatingSubmission } from '../lib/api/ratings'
 import type { MultiIndexSearchRow } from '../lib/api/search'
 import Results, { type Rating } from './Results'
@@ -35,28 +35,21 @@ function buildSubmission(rows: MultiIndexSearchRow[], ratingsByRow: Record<strin
 }
 
 export default function DevResults({ rows, onSubmitRatings }: Props) {
-  const [ratingsByRow, setRatingsByRow] = useState<Record<string, Rating[]>>({})
-  const [loadedRows, setLoadedRows] = useState<Record<string, boolean>>({})
-
-  useEffect(() => {
-    setRatingsByRow((previousRatings) => Object.fromEntries(
-      rows.map((row) => [
-        row.indexId,
-        row.results.map((_, index) => previousRatings[row.indexId]?.[index] ?? -1),
-      ]),
-    ))
-  }, [rows])
-
-  useEffect(() => {
-    setLoadedRows((previousLoadedRows) => Object.fromEntries(
-      rows.map((row) => [row.indexId, previousLoadedRows[row.indexId] ?? false]),
-    ))
-  }, [rows])
+  const [ratingState, setRatingState] = useState<{ rows: MultiIndexSearchRow[]; values: Record<string, Rating[]> }>(() => ({
+    rows,
+    values: {},
+  }))
+  const [loadedState, setLoadedState] = useState<{ rows: MultiIndexSearchRow[]; values: Record<string, boolean> }>(() => ({
+    rows,
+    values: {},
+  }))
+  const ratingsByRow = ratingState.rows === rows ? ratingState.values : {}
+  const loadedRows = loadedState.rows === rows ? loadedState.values : {}
 
   const handleRowRatingsChange = (row: MultiIndexSearchRow, ratings: Rating[]) => {
-    setRatingsByRow((previousRatings) => {
+    setRatingState(() => {
       const nextRatings = {
-        ...previousRatings,
+        ...ratingsByRow,
         [row.indexId]: ratings,
       }
 
@@ -64,15 +57,12 @@ export default function DevResults({ rows, onSubmitRatings }: Props) {
         onSubmitRatings(buildSubmission(rows, nextRatings))
       }
 
-      return nextRatings
+      return { rows, values: nextRatings }
     })
   }
 
   const handleLoadRow = (row: MultiIndexSearchRow) => {
-    setLoadedRows((previousLoadedRows) => ({
-      ...previousLoadedRows,
-      [row.indexId]: true,
-    }))
+    setLoadedState({ rows, values: { ...loadedRows, [row.indexId]: true } })
   }
 
   return (

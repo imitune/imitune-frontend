@@ -1,0 +1,147 @@
+# ThatSoundLikeMe Tauri Desktop
+
+The canonical Tauri 2 macOS and Windows distribution of the existing `thatsoundslike.me` React application. The native product name is `ThatSoundLikeMe`; the website's visible branding remains unchanged. It reuses the same web UI, local ONNX embedding model, production backend routes, consent flow, and Freesound results.
+
+## Production architecture
+
+| Feature | Tauri implementation | Production behavior |
+| --- | --- | --- |
+| Voice embedding | Bundled React UI, ONNX model and WASM runtime | Runs locally; search audio does not leave the device |
+| Search | Fixed Rust `search` command | `POST /api/search`, exact backend validation, Upstash rate limit, Pinecone, four results |
+| Optional feedback | Fixed Rust `feedback` command | `POST /api/feedback`, existing consent flow, validated audio/ratings, Vercel Blob |
+| External links | HTTPS-only Rust command | Opens the system browser; the WebView cannot select an API route |
+| Research PDFs | Allowlisted Rust command | Opens only the two packaged documents |
+
+The application does not include the pilot `/dev` index-selection mode. Rust accepts only the fixed production search and feedback routes, caps request and response sizes, uses HTTPS outside localhost development, does not retry rate-limit responses, and returns status/rate-limit metadata to the shared UI.
+
+## Microphone and audio compatibility
+
+- macOS includes `NSMicrophoneUsageDescription` and the audio-input entitlement. The operating-system prompt appears only after the microphone button is pressed.
+- Windows uses WebView2's audio-only `getUserMedia` permission flow. A denied request exposes a button for Windows microphone privacy settings.
+- The capture stream is released after every take, so the operating-system microphone indicator does not remain active between recordings.
+- Chromium/WebView2 and recent WebKit record Opus/WebM. Older WebKit versions, including macOS 12, may record AAC/MP4. The UI detects the actual `MediaRecorder` type and converts unsupported containers to mono PCM WAV before optional feedback upload. Search inference and preview still use the locally decoded recording.
+- Camera, screen capture and other native capabilities are not granted to the Tauri window.
+
+## Native icon treatment
+
+- macOS uses the bird on a padded warm rounded-square tile with a restrained native-style shadow, so it has the expected Dock and Finder silhouette.
+- Windows uses the same bird without a background and with a transparent safety margin, so Windows can place it cleanly in the taskbar, Start menu, shortcuts, and installer UI.
+- The editable platform masters and untouched bird artwork live in `../desktop-assets`. The website logo is not changed by the desktop icon treatment.
+
+## Prerequisites
+
+Install Node.js 24 and the stable Rust toolchain. For a universal Mac build:
+
+```bash
+rustup component add rustfmt clippy
+rustup target add x86_64-apple-darwin aarch64-apple-darwin
+```
+
+Install the existing web dependencies and the small Tauri CLI package:
+
+```bash
+npm ci --prefix web
+npm ci --prefix desktop-tauri
+```
+
+## Development and verification
+
+```bash
+cd desktop-tauri
+npm run dev
+npm run verify
+```
+
+`npm run verify` runs the Rust unit tests, formatting check, Clippy with warnings denied, and the Tauri-targeted production web build. Also run dependency advisory checks before release:
+
+```bash
+npm audit --prefix ../web
+npm audit
+cargo audit --file src-tauri/Cargo.lock
+```
+
+The GitHub `Tauri QA` workflow builds unsigned macOS universal and Windows x64 packages on their native operating systems.
+
+## Local QA packages
+
+On macOS:
+
+```bash
+npm run package:mac
+```
+
+Output:
+
+```text
+src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundLikeMe.app
+```
+
+On the Windows test machine:
+
+```powershell
+npm ci --prefix ..\web
+npm ci
+npm run verify
+npm run package:win
+```
+
+The Windows command creates an unsigned x64 NSIS installer below `src-tauri\target\x86_64-pc-windows-msvc\release\bundle\nsis`.
+
+## MuseHub macOS release
+
+MuseHub's recommended application format is a ZIP containing a self-contained `.app`. The configured bundle is universal, has bundle ID `me.thatsoundlikeme.desktop`, requires macOS 12+, contains no updater, and packages both consent documents.
+
+Install a **Developer ID Application** certificate and configure one Tauri-supported notarization credential set:
+
+```bash
+export APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name (TEAMID)"
+export APPLE_API_KEY=YOUR_KEY_ID
+export APPLE_API_ISSUER=YOUR_ISSUER_ID
+export APPLE_API_KEY_PATH=/absolute/path/to/AuthKey_KEYID.p8
+npm run dist:mac
+```
+
+Apple ID credentials (`APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`) are also supported. The release command refuses to run without both a signing identity and notarization credentials, builds the universal `.app`, then creates:
+
+```text
+dist/ThatSoundLikeMe-1.0.0-mac-universal.zip
+```
+
+Verify before upload:
+
+```bash
+codesign --verify --deep --strict --verbose=2 "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundLikeMe.app"
+spctl --assess --type execute --verbose=4 "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundLikeMe.app"
+xcrun stapler validate "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundLikeMe.app"
+```
+
+## MuseHub Windows release
+
+Build the final Windows installer on Windows. Copy `src-tauri/tauri.windows.release.example.json` to the ignored `src-tauri/tauri.windows.release.conf.json`, then configure either:
+
+- `certificateThumbprint`, `digestAlgorithm`, and your certificate provider's timestamp URL; or
+- a Tauri `signCommand` for an EV certificate, HSM, or Azure Artifact Signing.
+
+Run:
+
+```powershell
+npm run dist:win
+```
+
+The output is a signed x64 NSIS `.exe`. Tauri's NSIS installer supports silent installation with `/S`, installs per-user, registers with Add/Remove Programs, and downloads the WebView2 bootstrapper silently only when the runtime is absent.
+
+Test on a clean Windows account:
+
+1. Install normally and with `ThatSoundLikeMe-setup.exe /S`.
+2. Launch from MuseHub and confirm install-state/application-ID detection.
+3. Grant microphone access, record and play a query, then search and play all four Freesound results.
+4. Submit like/dislike feedback after consent.
+5. Deny microphone access, open Windows privacy settings from the error UI, re-enable it, and record again.
+6. Confirm the backend displays `429` after more than ten searches per minute rather than retrying.
+7. Uninstall through MuseHub and Add/Remove Programs.
+
+## Release gates
+
+- Deploy the hardened backend branch and configure production Upstash credentials. `X-RateLimit-Limit: 0` identifies the previous fail-open deployment and is not release-ready.
+- Upload only signed/notarized artifacts to MuseHub. Local `package:*` outputs are deliberately unsigned QA builds.
+- Free MuseHub products require no licensing integration. Paid products must use the MuseHub-approved DRM or Muse SDK flow before signing and packaging.

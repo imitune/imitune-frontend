@@ -1,0 +1,88 @@
+name: Tauri QA
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/tauri-qa.yml'
+      - 'desktop-tauri/**'
+      - 'web/**'
+  push:
+    branches:
+      - main
+      - tauri-app-v1
+    paths:
+      - '.github/workflows/tauri-qa.yml'
+      - 'desktop-tauri/**'
+      - 'web/**'
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS universal
+            runner: macos-15
+            package_script: package:mac
+            rust_targets: aarch64-apple-darwin,x86_64-apple-darwin
+            artifact_name: thatsoundlikeme-macos-universal-qa
+            artifact_path: desktop-tauri/src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundLikeMe.app
+          - name: Windows x64
+            runner: windows-2025
+            package_script: package:win
+            rust_targets: x86_64-pc-windows-msvc
+            artifact_name: thatsoundlikeme-windows-x64-qa
+            artifact_path: desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            desktop-tauri/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: ${{ matrix.rust_targets }}
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          npm ci --prefix web
+          npm ci --prefix desktop-tauri
+
+      - name: Audit npm dependencies
+        shell: bash
+        run: |
+          npm audit --prefix web
+          npm audit --prefix desktop-tauri
+
+      - name: Lint and test
+        shell: bash
+        run: |
+          npm --prefix web run lint
+          npm --prefix desktop-tauri test
+          npm --prefix desktop-tauri run check
+
+      - name: Build unsigned QA package
+        shell: bash
+        run: npm --prefix desktop-tauri run ${{ matrix.package_script }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_path }}
+          if-no-files-found: error

@@ -1,7 +1,12 @@
 import * as ort from 'onnxruntime-web'
+import { isDesktopApp } from '../desktop/runtime'
 
-// Configure ONNX Runtime WASM paths for version 1.19.2
-ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/'
+// Configure ONNX Runtime WASM paths
+// Use CDN for web (Vite dev server can't serve dynamic imports from public/)
+// Use local files for Tauri (the packaged app bundles them in the onnx/ directory).
+ort.env.wasm.wasmPaths = isDesktopApp()
+  ? './onnx/'
+  : 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/'
 // Disable multithreading for compatibility
 ort.env.wasm.numThreads = 1
 
@@ -41,7 +46,9 @@ export async function loadSession(modelUrl: string) {
 
 export async function audioBlobToMonoFloat32(blob: Blob, targetSampleRate: number = 32000): Promise<Float32Array> {
   const arrayBuffer = await blob.arrayBuffer()
-  const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+  const AudioContextConstructor = window.AudioContext || window.webkitAudioContext
+  if (!AudioContextConstructor) throw new Error('Web Audio is not supported in this environment.')
+  const audioCtx = new AudioContextConstructor()
   const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer)
   
   // Use Web Audio API for proper resampling with anti-aliasing
@@ -111,7 +118,6 @@ async function resampleAudioBuffer(audioBuffer: AudioBuffer, targetSampleRate: n
 export async function runEmbedding(
   session: ort.InferenceSession,
   audio: Float32Array,
-  _sampleRate?: number,
 ): Promise<EmbeddingResult> {
   // Model expects input: { waveform: float32 [batch_size, samples] }
   // Output: { embedding: float32 [batch_size, embedding_dim] }
@@ -128,4 +134,3 @@ export async function runEmbedding(
   console.log('Embedding extracted, vector length:', vector.length)
   return { vector }
 }
-

@@ -1,0 +1,66 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "ThatSoundLikeMe",
+  "version": "1.0.0",
+  "identifier": "me.thatsoundlikeme.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev:web",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "npm run build:web",
+    "frontendDist": "../../web/dist-tauri"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "ThatSoundLikeMe",
+        "width": 1280,
+        "height": 900,
+        "minWidth": 760,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "visible": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self' blob: https://freesound.org; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; frame-src https://freesound.org; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'",
+      "freezePrototype": false
+    }
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": false,
+    "category": "Music",
+    "publisher": "Imitune",
+    "shortDescription": "Search Freesound by imitating a sound with your voice.",
+    "copyright": "Copyright © 2026 Imitune",
+    "icon": [
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": {
+      "../../web/public/participant_information_sheet.pdf": "documents/participant_information_sheet.pdf",
+      "../../web/public/consent_form.pdf": "documents/consent_form.pdf"
+    },
+    "macOS": {
+      "minimumSystemVersion": "12.0",
+      "entitlements": "./Entitlements.plist",
+      "hardenedRuntime": true
+    },
+    "windows": {
+      "digestAlgorithm": "sha256",
+      "nsis": {
+        "compression": "lzma",
+        "displayLanguageSelector": false,
+        "installMode": "currentUser",
+        "installerIcon": "icons/icon.ico",
+        "startMenuFolder": "ThatSoundLikeMe"
+      },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      }
+    }
+  }
+}
