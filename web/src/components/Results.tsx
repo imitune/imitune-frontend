@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { SearchResult } from '../lib/api/search'
 
 export type Rating = -1 | 0 | 1
@@ -19,26 +19,26 @@ function extractSoundId(freesoundUrl: string): string | null {
 }
 
 export default function Results({ results, ratings: controlledRatings, onRatingsChange, onSubmitRatings, embedMode = 'eager' }: Props) {
-  const [internalRatings, setInternalRatings] = useState<Rating[]>(() => results.map(() => -1))
-  const [loadedPlayers, setLoadedPlayers] = useState<boolean[]>(() => results.map(() => embedMode === 'eager'))
+  const [ratingState, setRatingState] = useState<{ results: SearchResult[]; ratings: Rating[] }>(() => ({
+    results,
+    ratings: results.map(() => -1),
+  }))
+  const [playerState, setPlayerState] = useState<{ results: SearchResult[]; embedMode: Props['embedMode']; loaded: boolean[] }>(() => ({
+    results,
+    embedMode,
+    loaded: results.map(() => embedMode === 'eager'),
+  }))
   const isControlled = controlledRatings !== undefined
+  const internalRatings = ratingState.results === results ? ratingState.ratings : results.map(() => -1 as Rating)
   const ratings = controlledRatings ?? internalRatings
-
-  // Reset ratings when results change
-  useEffect(() => {
-    if (!isControlled) {
-      setInternalRatings(results.map(() => -1))
-    }
-  }, [results, isControlled])
-
-  useEffect(() => {
-    setLoadedPlayers(results.map(() => embedMode === 'eager'))
-  }, [results, embedMode])
+  const loadedPlayers = playerState.results === results && playerState.embedMode === embedMode
+    ? playerState.loaded
+    : results.map(() => embedMode === 'eager')
 
   const handleRate = (idx: number, value: Rating) => {
     const newRatings = ratings.map((r, i) => (i === idx ? value : r))
     if (!isControlled) {
-      setInternalRatings(newRatings)
+      setRatingState({ results, ratings: newRatings })
     }
     onRatingsChange?.(newRatings)
     // Auto-submit when user interacts with ratings
@@ -48,7 +48,11 @@ export default function Results({ results, ratings: controlledRatings, onRatings
   }
 
   const handleLoadPlayer = (idx: number) => {
-    setLoadedPlayers((previous) => previous.map((isLoaded, index) => (index === idx ? true : isLoaded)))
+    setPlayerState({
+      results,
+      embedMode,
+      loaded: loadedPlayers.map((isLoaded, index) => (index === idx ? true : isLoaded)),
+    })
   }
 
   if (!results.length) {
@@ -149,4 +153,3 @@ export default function Results({ results, ratings: controlledRatings, onRatings
     </div>
   )
 }
-

@@ -7,9 +7,11 @@ import Results from './components/Results'
 import { submitFeedback, type RatingSubmission } from './lib/api/ratings'
 import { searchAcrossIndexes, searchByEmbedding, type MultiIndexSearchRow, type SearchResult } from './lib/api/search'
 import type { Recording } from './lib/audio/recorder'
+import { installTauriLinkHandling, isDesktopApp } from './lib/desktop/runtime'
 import { audioBlobToMonoFloat32, loadSession, runEmbedding } from './lib/model/embedding'
 
 function App() {
+  const desktopApp = isDesktopApp()
   const [results, setResults] = useState<SearchResult[]>([])
   const [devRows, setDevRows] = useState<MultiIndexSearchRow[]>([])
   const [loading, setLoading] = useState(false)
@@ -39,7 +41,7 @@ function App() {
   const isUnavailableDevRoute = isDevRoute && !devModeEnabled
   
   // List of sound examples with emojis
-  const soundExamples = [
+  const soundExamples = useMemo(() => ([
     { sound: 'beep beep', emoji: '⏰' },
     { sound: 'woof woof', emoji: '🐶' },
     { sound: 'ding dong', emoji: '🔔' },
@@ -76,7 +78,7 @@ function App() {
     { sound: 'zzzip', emoji: '🤐' },
     { sound: 'vroom vroom', emoji: '🚗' },
     { sound: 'crunch', emoji: '🍁' },
-  ]
+  ]), [])
   
   // Select 3 random examples
   const randomExamples = useMemo(() => {
@@ -85,9 +87,9 @@ function App() {
     const second = shuffled[1] ?? soundExamples[1] ?? first
     const third = shuffled[2] ?? soundExamples[2] ?? second
     return [first, second, third] as const
-  }, [])
+  }, [soundExamples])
 
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<Awaited<ReturnType<typeof loadSession>> | null>(null)
   // Environment variables (baked at build time). In GitHub Pages workflow you must provide them.
   const rawApiSearchUrl = import.meta.env.VITE_API_URL as string | undefined // full /api/search endpoint (legacy var)
   const explicitFeedbackUrl = import.meta.env.VITE_FEEDBACK_URL as string | undefined // optional explicit feedback endpoint
@@ -136,26 +138,24 @@ function App() {
     }
   }, [])
 
+  useEffect(() => installTauriLinkHandling(), [])
+
   useEffect(() => {
     let mounted = true
     // Load stored consent
     try {
       const stored = localStorage.getItem('imitune_feedback_consent_v1')
       if (stored === 'true') setHasConsent(true)
-    } catch {}
-    if (!apiUrl) {
+    } catch {
+      // Storage can be unavailable in hardened/private browser contexts.
+    }
+    if (!apiUrl && !desktopApp) {
       console.warn('Search API URL is undefined. Set VITE_API_URL or VITE_BACKEND_BASE.')
     }
-    if (!feedbackUrl) {
+    if (!feedbackUrl && !desktopApp) {
       console.warn('Feedback API URL is undefined. Set VITE_FEEDBACK_URL, VITE_BACKEND_BASE, or VITE_API_URL ending in /api/search.')
     }
-    fetch(modelUrl, { method: 'HEAD' })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Model not accessible: ${response.status}`)
-        }
-        return loadSession(modelUrl)
-      })
+    loadSession(modelUrl)
       .then((s) => {
         if (mounted) {
           setSession(s)
@@ -168,7 +168,7 @@ function App() {
     return () => {
       mounted = false
     }
-  }, [modelUrl, apiUrl, feedbackUrl, backendBase, rawApiSearchUrl])
+  }, [modelUrl, apiUrl, feedbackUrl, backendBase, rawApiSearchUrl, desktopApp])
 
   // Process embedding when session becomes available and we have valid audio but no embedding yet
   useEffect(() => {
@@ -240,13 +240,14 @@ function App() {
   }
 
   const onSearch = async () => {
-    if (!embedding || !apiUrl) return
+    if (!embedding || (!apiUrl && !desktopApp)) return
     try {
       setError(null)
       setLoading(true)
       setSubmittedAudioId(null) // Reset audioId for new search results
 
       if (isDevPage) {
+        if (!apiUrl) throw new Error('Search API URL is not configured for dev mode.')
         const response = await searchAcrossIndexes(apiUrl, embedding)
         setResults([])
         setDevRows(response.rows)
@@ -264,7 +265,7 @@ function App() {
   }
 
   const handleSubmitRatings = async (data: RatingSubmission) => {
-    if (!feedbackUrl) {
+    if (!feedbackUrl && !desktopApp) {
       console.warn('Feedback endpoint not configured.')
       return
     }
@@ -303,8 +304,9 @@ function App() {
         // Store audioId for future updates
         setSubmittedAudioId(response.audioId)
       }
-    } catch (e:any) {
-      console.error('Failed to submit ratings:', e.message)
+    } catch (feedbackError: unknown) {
+      const message = feedbackError instanceof Error ? feedbackError.message : String(feedbackError)
+      console.error('Failed to submit ratings:', message)
       // Silently fail to keep UX smooth
     }
   }
@@ -327,7 +329,9 @@ function App() {
     }
     try {
       localStorage.setItem('imitune_feedback_consent_v1', 'true')
-    } catch {}
+    } catch {
+      // Feedback still works for this session if persistent storage is unavailable.
+    }
     setHasConsent(true)
     setShowConsent(false)
     
@@ -445,7 +449,7 @@ function App() {
               </>
             }
             extraButton={
-              <button className={`yellow-glow-action-button flex w-full items-center justify-center rounded-xl border border-slate-900 dark:border-slate-900 px-4 py-2 text-base font-medium text-black dark:text-white hover:opacity-90 disabled:opacity-50 md:w-auto ${embedding && hasValidAudio && !loading && !processingEmbedding && results.length === 0 && devRows.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !hasValidAudio || !apiUrl || processingEmbedding} onClick={onSearch}>
+              <button className={`yellow-glow-action-button flex w-full items-center justify-center rounded-xl border border-slate-900 dark:border-slate-900 px-4 py-2 text-base font-medium text-black dark:text-white hover:opacity-90 disabled:opacity-50 md:w-auto ${embedding && hasValidAudio && !loading && !processingEmbedding && results.length === 0 && devRows.length === 0 ? 'glow-active' : ''}`} disabled={loading || !embedding || !hasValidAudio || (!apiUrl && !desktopApp) || processingEmbedding} onClick={onSearch}>
                 {loading ? (isDevPage ? 'Comparing…' : 'Searching…') : processingEmbedding ? 'Processing…' : (isDevPage ? 'Compare indexes ✨' : 'Search ✨')}
               </button>
             }
@@ -520,20 +524,20 @@ function App() {
                 <img 
                   src={`${import.meta.env.BASE_URL}${isDarkMode ? 'qmul_white.png' : 'qmul.png'}`} 
                   alt="Queen Mary University of London" 
-                  className="h-12 w-auto object-contain"
+                  className="h-10 w-auto object-contain"
                 />
               </a>
               <a href="https://www.ukri.org" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-75">
                 <img 
                   src={`${import.meta.env.BASE_URL}${isDarkMode ? 'ukri_white.png' : 'ukri.png'}`} 
                   alt="UKRI" 
-                  className="h-12 w-auto object-contain"
+                  className="h-10 w-auto object-contain"
                 />
               </a>
             </div>
 
             {/* Copyright */}
-            <p className="text-xs text-slate-500 dark:text-slate-500">© 2025 thatsoundslike.me. All rights reserved.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-500">© 2026 thatsoundslike.me. All rights reserved.</p>
           </div>
         </footer>
 
@@ -653,7 +657,11 @@ function App() {
               if (hasConsent) {
                 // Turning off
                 setHasConsent(false)
-                try { localStorage.removeItem('imitune_feedback_consent_v1') } catch {}
+                try {
+                  localStorage.removeItem('imitune_feedback_consent_v1')
+                } catch {
+                  // The in-memory consent state is still updated below.
+                }
               } else {
                 // Turning on triggers modal for explicit acceptance
                 setPendingRatingsData(null)

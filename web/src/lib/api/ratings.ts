@@ -1,3 +1,5 @@
+import { desktopSubmitFeedback, isDesktopApp } from '../desktop/runtime'
+
 export type RatingValue = -1 | 0 | 1
 
 export type FeedbackResultContext = {
@@ -30,7 +32,19 @@ export type FeedbackResponse = {
   metadataUrl: string
 }
 
-export async function submitFeedback(feedbackUrl: string, body: FeedbackRequestBody): Promise<FeedbackResponse> {
+export async function submitFeedback(feedbackUrl: string | undefined, body: FeedbackRequestBody): Promise<FeedbackResponse> {
+  if (isDesktopApp()) {
+    const response = await desktopSubmitFeedback(body) as DesktopApiResponse<FeedbackResponse & { error?: string }>
+    if (!response.ok) {
+      const message = response.data?.error || response.statusText || 'Feedback submit failed'
+      const status = response.status > 0 ? ` (HTTP ${response.status})` : ''
+      throw new Error(`${message}${status}`)
+    }
+    return response.data
+  }
+
+  if (!feedbackUrl) throw new Error('Feedback API URL is not configured.')
+
   const res = await fetch(feedbackUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -41,7 +55,9 @@ export async function submitFeedback(feedbackUrl: string, body: FeedbackRequestB
     try {
       const data = await res.json()
       if (data?.error) err = data.error
-    } catch {}
+    } catch {
+      // Keep the generic message when the response is not JSON.
+    }
     throw new Error(err + ` (HTTP ${res.status})`)
   }
   return (await res.json()) as FeedbackResponse

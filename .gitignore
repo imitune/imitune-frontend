@@ -12,9 +12,13 @@ lerna-debug.log*
 .Trashes
 ehthumbs.db
 Thumbs.db
-/web/node_modules
-/desktop/node_modules
-/desktop/src-tauri/gen
-/desktop/src-tauri/target
-/desktop/src-tauri/Cargo.lock
-/desktop/src-tauri/target/release/bundle/
+web/node_modules/
+# Local artifacts from the retired Electron prototype are intentionally excluded.
+desktop-electron/
+web/dist-electron/
+desktop-tauri/node_modules/
+desktop-tauri/dist/
+desktop-tauri/src-tauri/gen/schemas/
+desktop-tauri/src-tauri/target/
+desktop-tauri/src-tauri/tauri.windows.release.conf.json
+web/dist-tauri/

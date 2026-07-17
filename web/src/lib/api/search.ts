@@ -1,3 +1,5 @@
+import { desktopSearch, isDesktopApp } from '../desktop/runtime'
+
 export type SearchResult = {
   id: string
   score: number
@@ -24,7 +26,19 @@ export type SearchError = {
   error: string
 }
 
-export async function searchByEmbedding(apiUrl: string, embedding: Float32Array): Promise<SearchResult[]> {
+export async function searchByEmbedding(apiUrl: string | undefined, embedding: Float32Array): Promise<SearchResult[]> {
+  if (isDesktopApp()) {
+    const response = await desktopSearch(Array.from(embedding)) as DesktopApiResponse<SearchResponse & SearchError>
+    if (!response.ok) {
+      const message = response.data?.error || response.statusText || 'Search failed'
+      const status = response.status > 0 ? ` (HTTP ${response.status})` : ''
+      throw new Error(`${message}${status}`)
+    }
+    return response.data?.results ?? []
+  }
+
+  if (!apiUrl) throw new Error('Search API URL is not configured.')
+
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: { 
@@ -80,4 +94,3 @@ export async function searchAcrossIndexes(
 
   return (await response.json()) as MultiIndexSearchResponse
 }
-

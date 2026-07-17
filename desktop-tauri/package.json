@@ -1,0 +1,24 @@
+{
+  "name": "thatsoundlikeme-tauri",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tauri desktop distribution of ThatSoundLikeMe for MuseHub.",
+  "author": "Imitune",
+  "license": "UNLICENSED",
+  "scripts": {
+    "tauri": "tauri",
+    "dev:web": "npm --prefix ../web run dev",
+    "build:web": "npm --prefix ../web run build -- --config vite.tauri.config.ts",
+    "dev": "tauri dev",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "check": "cargo fmt --manifest-path src-tauri/Cargo.toml -- --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
+    "verify": "npm test && npm run check && npm run build:web",
+    "package:mac": "tauri build --bundles app --target universal-apple-darwin --no-sign",
+    "package:win": "tauri build --bundles nsis --target x86_64-pc-windows-msvc --no-sign",
+    "dist:mac": "node scripts/release-guard.cjs mac && tauri build --bundles app --target universal-apple-darwin && node scripts/zip-macos.cjs",
+    "dist:win": "node scripts/release-guard.cjs win && tauri build --bundles nsis --target x86_64-pc-windows-msvc --config src-tauri/tauri.windows.release.conf.json"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.4"
+  }
+}
