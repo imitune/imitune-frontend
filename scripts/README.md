@@ -46,6 +46,31 @@ The analysis reports:
 
 Index comparisons use only stored `result_contexts.indexId` values. Pilot/dev-mode submissions include these values. Older and ordinary production submissions may not, so they remain unattributed rather than being assigned to the current default index retrospectively.
 
+## Local dashboard
+
+After downloading the metadata, start the private research dashboard from the frontend repository root:
+
+```bash
+uv run --project scripts feedback-dashboard
+```
+
+It opens at `http://127.0.0.1:8765` and provides:
+
+- start and end date, normal/dev mode, index, rating, and sort filters;
+- query, rating-coverage, like-rate, and top-rank summary statistics;
+- index, rank, and query-over-time charts;
+- imitation recording playback and on-demand Freesound result players;
+- a query-by-query explorer and filtered CSV export.
+
+To fetch the latest metadata and open the dashboard in one command:
+
+```bash
+export BLOB_READ_WRITE_TOKEN="your-token"
+uv run --project scripts feedback-dashboard --refresh
+```
+
+The server binds only to localhost by default. Binding it to another interface requires `--allow-network` because doing so may expose participant recordings and metadata to other devices.
+
 ## Re-running
 
 The downloader skips existing local files by default but always regenerates the consolidated outputs. Use `--force` if a blob with the same name must be downloaded again. Feedback updates have separate blob names and are discovered normally.
