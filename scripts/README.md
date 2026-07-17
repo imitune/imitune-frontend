@@ -39,6 +39,7 @@ The analysis reports:
 - unique queries and metadata updates;
 - total rated/unrated results, likes, dislikes, rating coverage, and like rate;
 - per-index query counts and rating outcomes;
+- inferred normal-versus-dev totals and normal-only rank outcomes;
 - outcomes by result rank and route;
 - daily query and rating counts;
 - how many results do or do not have explicit index attribution.

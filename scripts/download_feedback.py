@@ -88,15 +88,27 @@ def iter_result_rows(consolidated: Dict[str, Dict[str, Any]]) -> Iterable[Dict[s
             }
 
 
+def classify_result_mode(row: Dict[str, Any]) -> str:
+    """Classify stored context without pretending missing historical context is explicit."""
+    if row["route"] == "dev" or row["indexId"]:
+        return "dev"
+    if row["route"] == "default":
+        return "normal"
+    return "normal_inferred"
+
+
 def build_statistics(consolidated: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
     """Build overall, rank, route, date, and explicitly attributed index statistics."""
     result_rows = list(iter_result_rows(consolidated))
     overall = new_metrics()
     by_rank: Dict[int, Dict[str, int]] = defaultdict(new_metrics)
     by_route: Dict[str, Dict[str, int]] = defaultdict(new_metrics)
+    by_mode: Dict[str, Dict[str, int]] = defaultdict(new_metrics)
+    by_mode_rank: Dict[str, Dict[int, Dict[str, int]]] = defaultdict(lambda: defaultdict(new_metrics))
     by_index: Dict[str, Dict[str, int]] = defaultdict(new_metrics)
     by_day: Dict[str, Dict[str, int]] = defaultdict(new_metrics)
     route_queries: Dict[str, Set[str]] = defaultdict(set)
+    mode_queries: Dict[str, Set[str]] = defaultdict(set)
     index_queries: Dict[str, Set[str]] = defaultdict(set)
     index_rated_queries: Dict[str, Set[str]] = defaultdict(set)
     index_like_queries: Dict[str, Set[str]] = defaultdict(set)
@@ -105,13 +117,24 @@ def build_statistics(consolidated: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
     index_routes: Dict[str, Set[str]] = defaultdict(set)
     explicit_index_results = 0
     context_results = 0
+    normal_mode = new_metrics()
+    normal_mode_queries: Set[str] = set()
+    normal_mode_by_rank: Dict[int, Dict[str, int]] = defaultdict(new_metrics)
 
     for row in result_rows:
         rating = row["rating"]
+        mode = classify_result_mode(row)
         add_rating(overall, rating)
         add_rating(by_rank[row["rank"]], rating)
         add_rating(by_route[row["route"]], rating)
+        add_rating(by_mode[mode], rating)
+        add_rating(by_mode_rank[mode][row["rank"]], rating)
         route_queries[row["route"]].add(row["audioId"])
+        mode_queries[mode].add(row["audioId"])
+        if mode != "dev":
+            add_rating(normal_mode, rating)
+            add_rating(normal_mode_by_rank[row["rank"]], rating)
+            normal_mode_queries.add(row["audioId"])
 
         day = str(row["createdAt"])[:10]
         if len(day) == 10:
@@ -177,8 +200,35 @@ def build_statistics(consolidated: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
         day_output[day] = entry
 
     generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    mode_labels = {
+        "dev": "Dev multi-index",
+        "normal": "Normal (explicit)",
+        "normal_inferred": "Normal/legacy (inferred)",
+    }
+    mode_output = {
+        mode: {
+            **finalise_metrics(by_mode[mode]),
+            "label": mode_labels[mode],
+            "queries": len(mode_queries[mode]),
+            "by_rank": {
+                str(rank): finalise_metrics(by_mode_rank[mode][rank])
+                for rank in sorted(by_mode_rank[mode])
+            },
+        }
+        for mode in sorted(by_mode)
+    }
+    normal_mode_output = {
+        **finalise_metrics(normal_mode),
+        "queries": len(normal_mode_queries),
+        "explicit_queries": len(mode_queries["normal"]),
+        "inferred_queries": len(mode_queries["normal_inferred"]),
+        "by_rank": {
+            str(rank): finalise_metrics(normal_mode_by_rank[rank])
+            for rank in sorted(normal_mode_by_rank)
+        },
+    }
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at": generated_at,
         "total_queries": len(consolidated),
         "total_metadata_versions": sum(int(item.get("_version_count", 1)) for item in consolidated.values()),
@@ -201,6 +251,8 @@ def build_statistics(consolidated: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
         },
         "by_index": index_output,
         "by_rank": {str(rank): finalise_metrics(by_rank[rank]) for rank in sorted(by_rank)},
+        "by_mode": mode_output,
+        "normal_mode": normal_mode_output,
         "by_route": {
             route: {**finalise_metrics(by_route[route]), "queries": len(route_queries[route])}
             for route in sorted(by_route)
@@ -231,9 +283,29 @@ def build_markdown_report(stats: Dict[str, Any]) -> str:
         f"- Results attributed to a named index: {attribution['with_explicit_index']}",
         f"- Results without an explicit index: {attribution['without_explicit_index']}",
         "",
+        "## Normal versus dev mode",
+        "",
+        "| Mode | Queries | Results | Rated | Likes | Dislikes | Like rate |",
+        "|---|---:|---:|---:|---:|---:|---:|",
+    ]
+    normal = stats["normal_mode"]
+    lines.append(
+        f"| Normal/legacy (inferred where context is absent) | {normal['queries']} | {normal['results']} | "
+        f"{normal['rated']} | {normal['likes']} | {normal['dislikes']} | {format_rate(normal['like_rate'])} |"
+    )
+    dev = stats["by_mode"].get("dev", finalise_metrics(new_metrics()))
+    lines.append(
+        f"| Dev multi-index | {dev.get('queries', 0)} | {dev['results']} | {dev['rated']} | "
+        f"{dev['likes']} | {dev['dislikes']} | {format_rate(dev['like_rate'])} |"
+    )
+    lines.extend([
+        "",
+        f"> Of the {normal['queries']} normal/legacy queries, {normal['explicit_queries']} are explicitly marked normal and "
+        f"{normal['inferred_queries']} are inferred because they have no stored result context. The current website's normal route omits that context, but older dev submissions cannot be ruled out retrospectively.",
+        "",
         "## Index comparison",
         "",
-    ]
+    ])
     if stats["by_index"]:
         lines.extend([
             "| Index | Queries | Rated queries | Rated results | Likes | Dislikes | Like rate |",
@@ -251,7 +323,19 @@ def build_markdown_report(stats: Dict[str, Any]) -> str:
 
     lines.extend([
         "",
-        "## Ratings by rank",
+        "## Normal/legacy ratings by rank",
+        "",
+        "| Rank | Results | Rated | Likes | Dislikes | Like rate |",
+        "|---:|---:|---:|---:|---:|---:|",
+    ])
+    for rank, entry in normal["by_rank"].items():
+        lines.append(
+            f"| {rank} | {entry['results']} | {entry['rated']} | {entry['likes']} | "
+            f"{entry['dislikes']} | {format_rate(entry['like_rate'])} |"
+        )
+    lines.extend([
+        "",
+        "## All modes: ratings by rank",
         "",
         "| Rank | Results | Rated | Likes | Dislikes | Like rate |",
         "|---:|---:|---:|---:|---:|---:|",
