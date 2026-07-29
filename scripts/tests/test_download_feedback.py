@@ -132,6 +132,24 @@ class FeedbackAnalysisTests(unittest.TestCase):
         self.assertEqual(recovered, 1)
         self.assertEqual(consolidated["query-id"]["audioUrl"], blobs[0]["url"])
 
+    def test_versioned_blobs_with_the_same_pathname_get_distinct_local_paths(self):
+        first = {
+            "pathname": "feedback-meta-query-id.json",
+            "url": "https://store.public.blob.vercel-storage.com/first-version",
+        }
+        second = {
+            "pathname": "feedback-meta-query-id.json",
+            "url": "https://store.public.blob.vercel-storage.com/second-version",
+        }
+
+        first_path = self.downloader.blob_output_path(self.downloader.metadata_dir, first)
+        second_path = self.downloader.blob_output_path(self.downloader.metadata_dir, second)
+
+        self.assertNotEqual(first_path, second_path)
+        self.assertEqual(first_path.parent, self.downloader.metadata_dir)
+        self.assertEqual(first_path.suffix, ".json")
+        self.assertEqual(first_path, self.downloader.blob_output_path(self.downloader.metadata_dir, first))
+
 
 if __name__ == "__main__":
     unittest.main()

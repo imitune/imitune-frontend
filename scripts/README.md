@@ -73,7 +73,7 @@ The server binds only to localhost by default. Binding it to another interface r
 
 ## Re-running
 
-The downloader skips existing local files by default but always regenerates the consolidated outputs. Use `--force` if a blob with the same name must be downloaded again. Feedback updates have separate blob names and are discovered normally.
+The downloader skips existing local files by default but always regenerates the consolidated outputs. Vercel may return multiple feedback versions with the same pathname, so local filenames include a stable hash of the version URL to preserve every update. Use `--force` if an already-downloaded version must be replaced.
 
 To include participant audio as well as metadata, omit `--metadata-only`:
 
