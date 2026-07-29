@@ -3,6 +3,7 @@
 
 import argparse
 import csv
+import hashlib
 import json
 import os
 import sys
@@ -402,6 +403,20 @@ class FeedbackDownloader:
                     output.write(chunk)
         return True
 
+    @staticmethod
+    def blob_output_path(directory: Path, blob: Dict[str, Any]) -> Path:
+        """Return a stable local path without collapsing versioned Blob entries."""
+        pathname = Path(str(blob.get("pathname", ""))).name
+        if not pathname:
+            raise ValueError("Blob listing entry has no pathname")
+        url = blob.get("url")
+        if not isinstance(url, str) or not url:
+            raise ValueError(f"Blob listing entry has no URL: {pathname}")
+
+        source = Path(pathname)
+        version = hashlib.sha256(url.encode("utf-8")).hexdigest()[:16]
+        return directory / f"{source.stem}--{version}{source.suffix}"
+
     def process_metadata(self, metadata_files: List[Path]) -> Dict[str, Dict[str, Any]]:
         print("Processing metadata and deduplicating...")
         by_audio_id: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
@@ -521,13 +536,14 @@ class FeedbackDownloader:
 
         metadata_files = []
         for blob in tqdm(metadata_blobs, desc="Metadata"):
-            output_path = self.metadata_dir / Path(blob["pathname"]).name
+            output_path = self.blob_output_path(self.metadata_dir, blob)
             self.download_file(blob["url"], output_path, skip_existing)
             metadata_files.append(output_path)
 
         if not metadata_only:
             for blob in tqdm(audio_blobs, desc="Audio"):
-                self.download_file(blob["url"], self.audio_dir / Path(blob["pathname"]).name, skip_existing)
+                output_path = self.blob_output_path(self.audio_dir, blob)
+                self.download_file(blob["url"], output_path, skip_existing)
         else:
             print("Skipping audio downloads (--metadata-only)")
 
