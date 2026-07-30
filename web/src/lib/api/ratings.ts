@@ -1,4 +1,5 @@
 import { desktopSubmitFeedback, isDesktopApp } from '../desktop/runtime'
+import { RateLimitError } from './errors'
 
 export type RatingValue = -1 | 0 | 1
 
@@ -34,9 +35,18 @@ export type FeedbackResponse = {
 
 export async function submitFeedback(feedbackUrl: string | undefined, body: FeedbackRequestBody): Promise<FeedbackResponse> {
   if (isDesktopApp()) {
-    const response = await desktopSubmitFeedback(body) as DesktopApiResponse<FeedbackResponse & { error?: string }>
+    const response = await desktopSubmitFeedback(body) as DesktopApiResponse<FeedbackResponse & {
+      error?: string
+      retryAfter?: number
+    }>
     if (!response.ok) {
       const message = response.data?.error || response.statusText || 'Feedback submit failed'
+      if (response.status === 429) {
+        throw new RateLimitError(
+          message,
+          response.data?.retryAfter ?? response.rateLimit.retryAfter,
+        )
+      }
       const status = response.status > 0 ? ` (HTTP ${response.status})` : ''
       throw new Error(`${message}${status}`)
     }
@@ -52,11 +62,16 @@ export async function submitFeedback(feedbackUrl: string | undefined, body: Feed
   })
   if (!res.ok) {
     let err = 'Feedback submit failed'
+    let retryAfter: unknown = res.headers.get('Retry-After')
     try {
       const data = await res.json()
       if (data?.error) err = data.error
+      retryAfter = data?.retryAfter ?? retryAfter
     } catch {
       // Keep the generic message when the response is not JSON.
+    }
+    if (res.status === 429) {
+      throw new RateLimitError(err, retryAfter)
     }
     throw new Error(err + ` (HTTP ${res.status})`)
   }
