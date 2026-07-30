@@ -1,4 +1,5 @@
 import { desktopSearch, isDesktopApp } from '../desktop/runtime'
+import { RateLimitError } from './errors'
 
 export type SearchResult = {
   id: string
@@ -24,6 +25,7 @@ export type MultiIndexSearchResponse = {
 
 export type SearchError = {
   error: string
+  retryAfter?: number
 }
 
 export async function searchByEmbedding(apiUrl: string | undefined, embedding: Float32Array): Promise<SearchResult[]> {
@@ -31,6 +33,12 @@ export async function searchByEmbedding(apiUrl: string | undefined, embedding: F
     const response = await desktopSearch(Array.from(embedding)) as DesktopApiResponse<SearchResponse & SearchError>
     if (!response.ok) {
       const message = response.data?.error || response.statusText || 'Search failed'
+      if (response.status === 429) {
+        throw new RateLimitError(
+          message,
+          response.data?.retryAfter ?? response.rateLimit.retryAfter,
+        )
+      }
       const status = response.status > 0 ? ` (HTTP ${response.status})` : ''
       throw new Error(`${message}${status}`)
     }
@@ -51,11 +59,16 @@ export async function searchByEmbedding(apiUrl: string | undefined, embedding: F
   
   if (!response.ok) {
     let err = 'Search failed'
+    let retryAfter: unknown = response.headers.get('Retry-After')
     try {
       const errorData = (await response.json()) as SearchError
       if (errorData?.error) err = errorData.error
+      retryAfter = errorData?.retryAfter ?? retryAfter
     } catch {
       // JSON parsing failed, use fallback
+    }
+    if (response.status === 429) {
+      throw new RateLimitError(err, retryAfter)
     }
     throw new Error(`${err} (HTTP ${response.status})`)
   }
@@ -83,11 +96,16 @@ export async function searchAcrossIndexes(
 
   if (!response.ok) {
     let err = 'Multi-index search failed'
+    let retryAfter: unknown = response.headers.get('Retry-After')
     try {
       const errorData = (await response.json()) as SearchError
       if (errorData?.error) err = errorData.error
+      retryAfter = errorData?.retryAfter ?? retryAfter
     } catch {
       // JSON parsing failed, use fallback
+    }
+    if (response.status === 429) {
+      throw new RateLimitError(err, retryAfter)
     }
     throw new Error(`${err} (HTTP ${response.status})`)
   }

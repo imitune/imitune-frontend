@@ -4,6 +4,7 @@ import soundalikeLogo from './assets/soundalike.svg'
 import DevResults from './components/DevResults'
 import Recorder from './components/Recorder'
 import Results from './components/Results'
+import { RateLimitError } from './lib/api/errors'
 import { submitFeedback, type RatingSubmission } from './lib/api/ratings'
 import { searchAcrossIndexes, searchByEmbedding, type MultiIndexSearchRow, type SearchResult } from './lib/api/search'
 import type { Recording } from './lib/audio/recorder'
@@ -16,18 +17,27 @@ function App() {
   const [devRows, setDevRows] = useState<MultiIndexSearchRow[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [feedbackRateLimitMessage, setFeedbackRateLimitMessage] = useState<string | null>(null)
   const [embedding, setEmbedding] = useState<Float32Array | null>(null)
   const [processingEmbedding, setProcessingEmbedding] = useState(false)
   const [hasValidAudio, setHasValidAudio] = useState(false)
   const [lastRecordingBlob, setLastRecordingBlob] = useState<Blob | null>(null)
-  const [hasConsent, setHasConsent] = useState(false)
+  const [hasConsent, setHasConsent] = useState(() => {
+    try {
+      return localStorage.getItem('imitune_feedback_consent_v1') === 'true'
+    } catch {
+      return false
+    }
+  })
   const [showConsent, setShowConsent] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
   const [submittedAudioId, setSubmittedAudioId] = useState<string | null>(null)
   const [pendingRatingsData, setPendingRatingsData] = useState<RatingSubmission | null>(null)
   const [hasReadDocuments, setHasReadDocuments] = useState(true)
   const [hasAgreedToConsent, setHasAgreedToConsent] = useState(true)
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches,
+  )
   const devModeEnabled = ((import.meta.env.VITE_ENABLE_DEV_MODE as string | undefined) ?? 'false').toLowerCase() === 'true'
   const normalizedBasePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/$/, '')
   const normalizedPathname = window.location.pathname.replace(/\/+$/, '') || '/'
@@ -82,6 +92,7 @@ function App() {
   
   // Select 3 random examples
   const randomExamples = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity -- Examples are intentionally randomized once per page load.
     const shuffled = [...soundExamples].sort(() => 0.5 - Math.random())
     const first = shuffled[0] ?? soundExamples[0]!
     const second = shuffled[1] ?? soundExamples[1] ?? first
@@ -121,7 +132,6 @@ function App() {
   // Detect dark mode
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    setIsDarkMode(mediaQuery.matches)
     
     const handleChange = (e: MediaQueryListEvent) => {
       setIsDarkMode(e.matches)
@@ -142,13 +152,6 @@ function App() {
 
   useEffect(() => {
     let mounted = true
-    // Load stored consent
-    try {
-      const stored = localStorage.getItem('imitune_feedback_consent_v1')
-      if (stored === 'true') setHasConsent(true)
-    } catch {
-      // Storage can be unavailable in hardened/private browser contexts.
-    }
     if (!apiUrl && !desktopApp) {
       console.warn('Search API URL is undefined. Set VITE_API_URL or VITE_BACKEND_BASE.')
     }
@@ -192,6 +195,7 @@ function App() {
 
   const onRecorded = async (rec: Recording) => {
     setError(null)
+    setFeedbackRateLimitMessage(null)
     setResults([])
     setDevRows([])
     setEmbedding(null)
@@ -243,6 +247,7 @@ function App() {
     if (!embedding || (!apiUrl && !desktopApp)) return
     try {
       setError(null)
+      setFeedbackRateLimitMessage(null)
       setLoading(true)
       setSubmittedAudioId(null) // Reset audioId for new search results
 
@@ -258,7 +263,14 @@ function App() {
       setDevRows([])
       setResults(urls)
     } catch (e) {
-      setError(String(e))
+      if (e instanceof RateLimitError) {
+        const retry = e.retryAfterSeconds
+          ? ` Please try again in ${e.retryAfterSeconds} seconds.`
+          : ' Please try again shortly.'
+        setError(`Too many searches from this network.${retry}`)
+      } else {
+        setError(String(e))
+      }
     } finally {
       setLoading(false)
     }
@@ -304,10 +316,18 @@ function App() {
         // Store audioId for future updates
         setSubmittedAudioId(response.audioId)
       }
+      setFeedbackRateLimitMessage(null)
     } catch (feedbackError: unknown) {
       const message = feedbackError instanceof Error ? feedbackError.message : String(feedbackError)
       console.error('Failed to submit ratings:', message)
-      // Silently fail to keep UX smooth
+      if (feedbackError instanceof RateLimitError) {
+        const retry = feedbackError.retryAfterSeconds
+          ? ` Please try again in ${feedbackError.retryAfterSeconds} seconds.`
+          : ' Please try again shortly.'
+        setFeedbackRateLimitMessage(
+          `Too many ratings have been submitted from this network.${retry}`,
+        )
+      }
     }
   }
 
@@ -472,6 +492,15 @@ function App() {
             </div>
 
             <div className="mt-4">
+              {feedbackRateLimitMessage && (
+                <p
+                  role="alert"
+                  aria-live="assertive"
+                  className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-center text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
+                >
+                  {feedbackRateLimitMessage}
+                </p>
+              )}
               <Results results={results} onSubmitRatings={requestSubmitRatings} />
             </div>
           </section>
@@ -489,6 +518,15 @@ function App() {
             </div>
 
             <div className="mt-4">
+              {feedbackRateLimitMessage && (
+                <p
+                  role="alert"
+                  aria-live="assertive"
+                  className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-center text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
+                >
+                  {feedbackRateLimitMessage}
+                </p>
+              )}
               <DevResults rows={devRows} onSubmitRatings={requestSubmitRatings} />
             </div>
           </section>
