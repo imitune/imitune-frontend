@@ -137,7 +137,7 @@ Test on a clean Windows account:
 3. Grant microphone access, record and play a query, then search and play all four Freesound results.
 4. Submit like/dislike feedback after consent.
 5. Deny microphone access, open Windows privacy settings from the error UI, re-enable it, and record again.
-6. Confirm the backend displays `429` after more than ten searches per minute rather than retrying.
+6. Confirm the backend displays `429` after more than twenty searches per minute rather than retrying.
 7. Uninstall through MuseHub and Add/Remove Programs.
 
 ## Release gates
