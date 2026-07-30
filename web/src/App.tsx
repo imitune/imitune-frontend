@@ -22,14 +22,22 @@ function App() {
   const [processingEmbedding, setProcessingEmbedding] = useState(false)
   const [hasValidAudio, setHasValidAudio] = useState(false)
   const [lastRecordingBlob, setLastRecordingBlob] = useState<Blob | null>(null)
-  const [hasConsent, setHasConsent] = useState(false)
+  const [hasConsent, setHasConsent] = useState(() => {
+    try {
+      return localStorage.getItem('imitune_feedback_consent_v1') === 'true'
+    } catch {
+      return false
+    }
+  })
   const [showConsent, setShowConsent] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
   const [submittedAudioId, setSubmittedAudioId] = useState<string | null>(null)
   const [pendingRatingsData, setPendingRatingsData] = useState<RatingSubmission | null>(null)
   const [hasReadDocuments, setHasReadDocuments] = useState(true)
   const [hasAgreedToConsent, setHasAgreedToConsent] = useState(true)
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches,
+  )
   const devModeEnabled = ((import.meta.env.VITE_ENABLE_DEV_MODE as string | undefined) ?? 'false').toLowerCase() === 'true'
   const normalizedBasePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/$/, '')
   const normalizedPathname = window.location.pathname.replace(/\/+$/, '') || '/'
@@ -84,6 +92,7 @@ function App() {
   
   // Select 3 random examples
   const randomExamples = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity -- Examples are intentionally randomized once per page load.
     const shuffled = [...soundExamples].sort(() => 0.5 - Math.random())
     const first = shuffled[0] ?? soundExamples[0]!
     const second = shuffled[1] ?? soundExamples[1] ?? first
@@ -123,7 +132,6 @@ function App() {
   // Detect dark mode
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    setIsDarkMode(mediaQuery.matches)
     
     const handleChange = (e: MediaQueryListEvent) => {
       setIsDarkMode(e.matches)
@@ -144,13 +152,6 @@ function App() {
 
   useEffect(() => {
     let mounted = true
-    // Load stored consent
-    try {
-      const stored = localStorage.getItem('imitune_feedback_consent_v1')
-      if (stored === 'true') setHasConsent(true)
-    } catch {
-      // Storage can be unavailable in hardened/private browser contexts.
-    }
     if (!apiUrl && !desktopApp) {
       console.warn('Search API URL is undefined. Set VITE_API_URL or VITE_BACKEND_BASE.')
     }
