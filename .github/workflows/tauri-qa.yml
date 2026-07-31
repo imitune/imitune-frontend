@@ -33,13 +33,13 @@ jobs:
             runner: macos-15
             package_script: package:mac
             rust_targets: aarch64-apple-darwin,x86_64-apple-darwin
-            artifact_name: thatsoundlikeme-macos-universal-qa
-            artifact_path: desktop-tauri/src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundLikeMe.app
+            artifact_name: thatsoundslikeme-macos-universal-qa
+            artifact_path: desktop-tauri/src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app
           - name: Windows x64
             runner: windows-2025
             package_script: package:win
             rust_targets: x86_64-pc-windows-msvc
-            artifact_name: thatsoundlikeme-windows-x64-qa
+            artifact_name: thatsoundslikeme-windows-x64-qa
             artifact_path: desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
 
     steps:
