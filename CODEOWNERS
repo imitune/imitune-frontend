@@ -1,0 +1,7 @@
+# Release and trusted-build controls
+/.github/ @chrispla
+/desktop-tauri/src-tauri/tauri.conf.json @chrispla
+/desktop-tauri/scripts/ @chrispla
+/signpath/ @chrispla
+/CODEOWNERS @chrispla
+/SECURITY.md @chrispla

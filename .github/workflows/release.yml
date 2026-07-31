@@ -1,0 +1,113 @@
+name: Release desktop artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version (for example 1.0.1-beta.1)
+        required: true
+        type: string
+      signing_version:
+        description: Four-part-or-fewer Windows product version (for example 1.0.1)
+        required: true
+        default: '1.0.1'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  windows-unsigned:
+    name: Windows x64 unsigned build
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            desktop-tauri/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+      - name: Install dependencies and verify web source
+        shell: bash
+        run: |
+          npm ci --prefix web
+          npm ci --prefix desktop-tauri
+          npm --prefix web run lint
+          npm --prefix web run build
+      - name: Build unsigned application executable
+        shell: bash
+        run: npm --prefix desktop-tauri exec -- tauri build --no-bundle --target x86_64-pc-windows-msvc --no-sign
+      - name: Upload executable for SignPath
+        id: upload-unsigned-executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: thatsoundlikeme-${{ inputs.version }}-windows-executable-unsigned
+          path: desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/ThatSoundLikeMe.exe
+          if-no-files-found: error
+      - name: Submit executable signing request
+        if: ${{ vars.SIGNPATH_ENABLED == 'true' }}
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_APP_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-executable.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: signed-executable
+          parameters: |
+            version: ${{ toJSON(inputs.signing_version) }}
+      - name: Insert signed executable
+        if: ${{ vars.SIGNPATH_ENABLED == 'true' }}
+        shell: pwsh
+        run: Copy-Item signed-executable/ThatSoundLikeMe.exe desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/ThatSoundLikeMe.exe -Force
+      - name: Package NSIS installer
+        shell: bash
+        run: npm --prefix desktop-tauri exec -- tauri bundle --bundles nsis --target x86_64-pc-windows-msvc --no-sign
+      - name: Upload unsigned installer for release or SignPath
+        id: upload-unsigned-installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: thatsoundlikeme-${{ inputs.version }}-windows-installer-unsigned
+          path: desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+          if-no-files-found: error
+      - name: Submit installer signing request
+        if: ${{ vars.SIGNPATH_ENABLED == 'true' }}
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-installer.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: signed-installer
+          parameters: |
+            version: ${{ toJSON(inputs.signing_version) }}
+      - name: Replace installer with signed artifact
+        if: ${{ vars.SIGNPATH_ENABLED == 'true' }}
+        shell: pwsh
+        run: Copy-Item signed-installer/*.exe desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/ -Force
+      - name: Upload final installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: thatsoundlikeme-${{ inputs.version }}-windows-x64
+          path: desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+  signpath-notice:
+    name: SignPath configuration gate
+    needs: windows-unsigned
+    runs-on: ubuntu-24.04
+    if: ${{ vars.SIGNPATH_ENABLED != 'true' }}
+    steps:
+      - run: echo "Unsigned artifacts are ready. Configure SignPath as documented in signpath/README.md before enabling signing."

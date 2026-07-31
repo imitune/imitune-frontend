@@ -104,7 +104,7 @@ npm run dist:mac
 Apple ID credentials (`APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`) are also supported. The release command refuses to run without both a signing identity and notarization credentials, builds the universal `.app`, then creates:
 
 ```text
-dist/ThatSoundLikeMe-1.0.0-mac-universal.zip
+dist/ThatSoundLikeMe-1.0.1-mac-universal.zip
 ```
 
 Verify before upload:

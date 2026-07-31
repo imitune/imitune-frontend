@@ -1,4 +1,4 @@
-# ImiTune Web
+# ThatSoundLikeMe Web
 
 Search audio samples by audio imitation. Record up to 10 seconds, run an ONNX embedding model in the browser, send the embedding to an API (Vercel function) that queries Pinecone, and render the top Freesound results with the embedded player.
 
@@ -68,7 +68,7 @@ This app can be deployed to GitHub Pages. Common approaches:
 - Use GitHub Actions to build and publish the `dist/` directory.
 - Or use a manual flow: `npm run build`, then push `dist/` to `gh-pages` branch.
 
-If your repo serves the site from a subpath (e.g., `/yourname/imitune-frontend/`), set Vite base in `vite.config.ts`:
+If your repo serves the site from a subpath (e.g., `/yourname/app/`), set Vite base in `vite.config.ts`:
 
 ```ts
 export default defineConfig({

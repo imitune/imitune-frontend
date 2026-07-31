@@ -11,6 +11,23 @@ import type { Recording } from './lib/audio/recorder'
 import { installTauriLinkHandling, isDesktopApp } from './lib/desktop/runtime'
 import { audioBlobToMonoFloat32, loadSession, runEmbedding } from './lib/model/embedding'
 
+const FEEDBACK_CONSENT_KEY = 'thatsoundlikeme_feedback_consent_v1'
+const LEGACY_FEEDBACK_CONSENT_KEY = 'imitune_feedback_consent_v1'
+
+function loadFeedbackConsent() {
+  try {
+    if (localStorage.getItem(FEEDBACK_CONSENT_KEY) === 'true') return true
+    if (localStorage.getItem(LEGACY_FEEDBACK_CONSENT_KEY) === 'true') {
+      localStorage.setItem(FEEDBACK_CONSENT_KEY, 'true')
+      localStorage.removeItem(LEGACY_FEEDBACK_CONSENT_KEY)
+      return true
+    }
+  } catch {
+    // Feedback still works for the current session if persistent storage is unavailable.
+  }
+  return false
+}
+
 function App() {
   const desktopApp = isDesktopApp()
   const [results, setResults] = useState<SearchResult[]>([])
@@ -22,13 +39,7 @@ function App() {
   const [processingEmbedding, setProcessingEmbedding] = useState(false)
   const [hasValidAudio, setHasValidAudio] = useState(false)
   const [lastRecordingBlob, setLastRecordingBlob] = useState<Blob | null>(null)
-  const [hasConsent, setHasConsent] = useState(() => {
-    try {
-      return localStorage.getItem('imitune_feedback_consent_v1') === 'true'
-    } catch {
-      return false
-    }
-  })
+  const [hasConsent, setHasConsent] = useState(loadFeedbackConsent)
   const [showConsent, setShowConsent] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
   const [submittedAudioId, setSubmittedAudioId] = useState<string | null>(null)
@@ -348,7 +359,7 @@ function App() {
       return // Extra safety check
     }
     try {
-      localStorage.setItem('imitune_feedback_consent_v1', 'true')
+      localStorage.setItem(FEEDBACK_CONSENT_KEY, 'true')
     } catch {
       // Feedback still works for this session if persistent storage is unavailable.
     }
@@ -576,6 +587,11 @@ function App() {
 
             {/* Copyright */}
             <p className="text-xs text-slate-500 dark:text-slate-500">© 2026 thatsoundslike.me. All rights reserved.</p>
+            <p className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+              <a href={`${import.meta.env.BASE_URL}privacy.html`} className="hover:underline">Privacy</a>
+              <a href={`${import.meta.env.BASE_URL}code-signing-policy.html`} className="hover:underline">Code signing policy</a>
+              <a href={`${import.meta.env.BASE_URL}download.html`} className="hover:underline">Downloads</a>
+            </p>
           </div>
         </footer>
 
@@ -678,6 +694,9 @@ function App() {
           If you consent to data collection and submit likes or dislikes to returned sounds, you help us collect data to improve open-source query by vocal imitation models!
         </p>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+          Read our <a href={`${import.meta.env.BASE_URL}privacy.html`} target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 underline">privacy policy</a> and <a href={`${import.meta.env.BASE_URL}code-signing-policy.html`} target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 underline">code signing policy</a>.
+        </p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
           We hope you enjoy playing around with the website! For feedback or questions, email c dοt plachouras αt qmul dοt ac dοt uk.
         </p>
         <div className="flex justify-end">
@@ -696,7 +715,8 @@ function App() {
                 // Turning off
                 setHasConsent(false)
                 try {
-                  localStorage.removeItem('imitune_feedback_consent_v1')
+                  localStorage.removeItem(FEEDBACK_CONSENT_KEY)
+                  localStorage.removeItem(LEGACY_FEEDBACK_CONSENT_KEY)
                 } catch {
                   // The in-memory consent state is still updated below.
                 }

@@ -13,15 +13,14 @@ lerna-debug.log*
 ehthumbs.db
 Thumbs.db
 web/node_modules/
-# Local artifacts from the retired Electron prototype are intentionally excluded.
-desktop-electron/
-web/dist-electron/
 desktop-tauri/node_modules/
 desktop-tauri/dist/
 desktop-tauri/src-tauri/gen/schemas/
 desktop-tauri/src-tauri/target/
 desktop-tauri/src-tauri/tauri.windows.release.conf.json
 web/dist-tauri/
+# Local server output is not part of the product source.
+*.log
 # Downloaded participant feedback and generated analysis are local-only.
 feedback_data/
 .venv/
