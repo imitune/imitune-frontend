@@ -1,9 +1,9 @@
 {
-  "name": "thatsoundlikeme-tauri",
+  "name": "thatsoundslikeme-tauri",
   "version": "1.0.1",
   "private": true,
-  "description": "Tauri desktop distribution of ThatSoundLikeMe for MuseHub.",
-  "author": "ThatSoundLikeMe contributors",
+  "description": "Tauri desktop distribution of ThatSoundsLikeMe for MuseHub.",
+  "author": "ThatSoundsLikeMe contributors",
   "license": "MIT",
   "scripts": {
     "tauri": "tauri",

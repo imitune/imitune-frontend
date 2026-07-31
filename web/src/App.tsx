@@ -11,12 +11,18 @@ import type { Recording } from './lib/audio/recorder'
 import { installTauriLinkHandling, isDesktopApp } from './lib/desktop/runtime'
 import { audioBlobToMonoFloat32, loadSession, runEmbedding } from './lib/model/embedding'
 
-const FEEDBACK_CONSENT_KEY = 'thatsoundlikeme_feedback_consent_v1'
+const FEEDBACK_CONSENT_KEY = 'thatsoundslikeme_feedback_consent_v1'
+const PREVIOUS_BRAND_CONSENT_KEY = 'thatsoundlikeme_feedback_consent_v1'
 const LEGACY_FEEDBACK_CONSENT_KEY = 'imitune_feedback_consent_v1'
 
 function loadFeedbackConsent() {
   try {
     if (localStorage.getItem(FEEDBACK_CONSENT_KEY) === 'true') return true
+    if (localStorage.getItem(PREVIOUS_BRAND_CONSENT_KEY) === 'true') {
+      localStorage.setItem(FEEDBACK_CONSENT_KEY, 'true')
+      localStorage.removeItem(PREVIOUS_BRAND_CONSENT_KEY)
+      return true
+    }
     if (localStorage.getItem(LEGACY_FEEDBACK_CONSENT_KEY) === 'true') {
       localStorage.setItem(FEEDBACK_CONSENT_KEY, 'true')
       localStorage.removeItem(LEGACY_FEEDBACK_CONSENT_KEY)
@@ -716,6 +722,7 @@ function App() {
                 setHasConsent(false)
                 try {
                   localStorage.removeItem(FEEDBACK_CONSENT_KEY)
+                  localStorage.removeItem(PREVIOUS_BRAND_CONSENT_KEY)
                   localStorage.removeItem(LEGACY_FEEDBACK_CONSENT_KEY)
                 } catch {
                   // The in-memory consent state is still updated below.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serve the local ThatSoundLikeMe feedback dashboard."""
+"""Serve the local ThatSoundsLikeMe feedback dashboard."""
 
 import argparse
 import json
@@ -48,7 +48,7 @@ def load_queries(path: Path) -> Any:
 
 def create_handler(data_path: Path, asset_dir: Path = ASSET_DIR) -> Type[BaseHTTPRequestHandler]:
     class DashboardHandler(BaseHTTPRequestHandler):
-        server_version = "ThatSoundLikeMeDashboard/1.0"
+        server_version = "ThatSoundsLikeMeDashboard/1.0"
 
         def send_common_headers(self, content_type: str, length: int) -> None:
             self.send_header("Content-Type", content_type)
@@ -102,7 +102,7 @@ def create_handler(data_path: Path, asset_dir: Path = ASSET_DIR) -> Type[BaseHTT
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the local ThatSoundLikeMe feedback dashboard")
+    parser = argparse.ArgumentParser(description="Run the local ThatSoundsLikeMe feedback dashboard")
     parser.add_argument(
         "--data-dir",
         type=Path,
@@ -146,7 +146,7 @@ def main(argv: Optional[Any] = None) -> None:
     actual_host, actual_port = server.server_address[:2]
     browser_host = "127.0.0.1" if actual_host in ("0.0.0.0", "::") else actual_host
     url = f"http://{browser_host}:{actual_port}/"
-    print(f"ThatSoundLikeMe feedback dashboard: {url}")
+    print(f"ThatSoundsLikeMe feedback dashboard: {url}")
     print(f"Data: {data_path.resolve()}")
     print("Press Ctrl+C to stop.")
     if not args.no_browser:

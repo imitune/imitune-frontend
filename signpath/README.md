@@ -1,13 +1,13 @@
 # SignPath release configuration
 
 This directory documents the two-stage Windows signing flow for
-ThatSoundLikeMe. It is intentionally inactive until the SignPath Foundation
+ThatSoundsLikeMe. It is intentionally inactive until the SignPath Foundation
 accepts the project and its GitHub App, organisation ID, project slug and
 signing-policy slug have been configured.
 
 ## Artifact configurations
 
-1. `app-executable.xml` signs the project-owned `ThatSoundLikeMe.exe`.
+1. `app-executable.xml` signs the project-owned `ThatSoundsLikeMe.exe`.
 2. `nsis-installer.xml` signs the final NSIS installer after it packages the
    signed application executable.
 

@@ -1,4 +1,4 @@
-# ThatSoundLikeMe feedback analysis
+# ThatSoundsLikeMe feedback analysis
 
 `download-feedback` downloads feedback metadata from Vercel Blob, keeps the latest submission for each audio query, and produces analysis-ready data and a readable report. Audio can be downloaded too, but is skipped for ordinary statistical analysis.
 

@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
   <key>NSMicrophoneUsageDescription</key>
-  <string>ThatSoundLikeMe records the sound you imitate so it can search for similar sounds.</string>
+  <string>ThatSoundsLikeMe records the sound you imitate so it can search for similar sounds.</string>
   <key>LSMultipleInstancesProhibited</key>
   <true/>
 </dict>

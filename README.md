@@ -1,6 +1,6 @@
-# ThatSoundLikeMe Frontend Monorepo
+# ThatSoundsLikeMe Frontend Monorepo
 
-This repository contains the ThatSoundLikeMe web and desktop applications.
+This repository contains the ThatSoundsLikeMe web and desktop applications.
 
 ## Supported applications
 

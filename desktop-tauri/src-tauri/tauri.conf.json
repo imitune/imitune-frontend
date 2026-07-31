@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "ThatSoundLikeMe",
+  "productName": "ThatSoundsLikeMe",
   "version": "1.0.1",
-  "identifier": "me.thatsoundlikeme.desktop",
+  "identifier": "me.thatsoundslikeme.desktop",
   "build": {
     "beforeDevCommand": "npm run dev:web",
     "devUrl": "http://localhost:5173",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "ThatSoundLikeMe",
+        "title": "ThatSoundsLikeMe",
         "width": 1280,
         "height": 900,
         "minWidth": 760,
@@ -32,9 +32,9 @@
     "active": true,
     "createUpdaterArtifacts": false,
     "category": "Music",
-    "publisher": "ThatSoundLikeMe",
+    "publisher": "ThatSoundsLikeMe",
     "shortDescription": "Search Freesound by imitating a sound with your voice.",
-    "copyright": "Copyright © 2026 ThatSoundLikeMe contributors",
+    "copyright": "Copyright © 2026 ThatSoundsLikeMe contributors",
     "icon": [
       "icons/icon.icns",
       "icons/icon.ico"
@@ -55,7 +55,7 @@
         "displayLanguageSelector": false,
         "installMode": "currentUser",
         "installerIcon": "icons/icon.ico",
-        "startMenuFolder": "ThatSoundLikeMe"
+        "startMenuFolder": "ThatSoundsLikeMe"
       },
       "webviewInstallMode": {
         "type": "downloadBootstrapper",

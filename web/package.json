@@ -1,9 +1,9 @@
 {
-  "name": "thatsoundlikeme-web",
+  "name": "thatsoundslikeme-web",
   "private": true,
   "version": "1.0.1",
   "type": "module",
-  "description": "ThatSoundLikeMe web application.",
+  "description": "ThatSoundsLikeMe web application.",
   "license": "MIT",
   "scripts": {
     "dev": "vite",

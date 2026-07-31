@@ -3,13 +3,13 @@
     <parameter name="version" required="true" />
   </parameters>
   <zip-file>
-    <pe-file path="ThatSoundLikeMe.exe"
-      product-name="ThatSoundLikeMe"
+    <pe-file path="ThatSoundsLikeMe.exe"
+      product-name="ThatSoundsLikeMe"
       product-version="${version}"
       file-version="${version}"
-      company-name="ThatSoundLikeMe contributors"
-      copyright="Copyright © 2026 ThatSoundLikeMe contributors"
-      original-filename="ThatSoundLikeMe.exe">
+      company-name="ThatSoundsLikeMe contributors"
+      copyright="Copyright © 2026 ThatSoundsLikeMe contributors"
+      original-filename="ThatSoundsLikeMe.exe">
       <authenticode-sign />
     </pe-file>
   </zip-file>

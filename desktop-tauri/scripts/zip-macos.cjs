@@ -7,12 +7,12 @@ const { spawnSync } = require('node:child_process')
 const packageJson = require('../package.json')
 const appPath = path.resolve(
   __dirname,
-  '../src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundLikeMe.app',
+  '../src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app',
 )
 const outputDirectory = path.resolve(__dirname, '../dist')
 const outputPath = path.join(
   outputDirectory,
-  `ThatSoundLikeMe-${packageJson.version}-mac-universal.zip`,
+  `ThatSoundsLikeMe-${packageJson.version}-mac-universal.zip`,
 )
 
 if (!fs.existsSync(appPath)) {
