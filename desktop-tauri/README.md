@@ -1,6 +1,6 @@
-# ThatSoundLikeMe Tauri Desktop
+# ThatSoundsLikeMe Tauri Desktop
 
-The canonical Tauri 2 macOS and Windows distribution of the existing `thatsoundslike.me` React application. The native product name is `ThatSoundLikeMe`; the website's visible branding remains unchanged. It reuses the same web UI, local ONNX embedding model, production backend routes, consent flow, and Freesound results.
+The canonical Tauri 2 macOS and Windows distribution of the existing `thatsoundslike.me` React application. The native product name is `ThatSoundsLikeMe`; the website's visible branding remains unchanged. It reuses the same web UI, local ONNX embedding model, production backend routes, consent flow, and Freesound results.
 
 ## Production architecture
 
@@ -73,7 +73,7 @@ npm run package:mac
 Output:
 
 ```text
-src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundLikeMe.app
+src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app
 ```
 
 On the Windows test machine:
@@ -89,7 +89,7 @@ The Windows command creates an unsigned x64 NSIS installer below `src-tauri\targ
 
 ## MuseHub macOS release
 
-MuseHub's recommended application format is a ZIP containing a self-contained `.app`. The configured bundle is universal, has bundle ID `me.thatsoundlikeme.desktop`, requires macOS 12+, contains no updater, and packages both consent documents.
+MuseHub's recommended application format is a ZIP containing a self-contained `.app`. The configured bundle is universal, has bundle ID `me.thatsoundslikeme.desktop`, requires macOS 12+, contains no updater, and packages both consent documents.
 
 Install a **Developer ID Application** certificate and configure one Tauri-supported notarization credential set:
 
@@ -104,15 +104,15 @@ npm run dist:mac
 Apple ID credentials (`APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`) are also supported. The release command refuses to run without both a signing identity and notarization credentials, builds the universal `.app`, then creates:
 
 ```text
-dist/ThatSoundLikeMe-1.0.1-mac-universal.zip
+dist/ThatSoundsLikeMe-1.0.1-mac-universal.zip
 ```
 
 Verify before upload:
 
 ```bash
-codesign --verify --deep --strict --verbose=2 "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundLikeMe.app"
-spctl --assess --type execute --verbose=4 "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundLikeMe.app"
-xcrun stapler validate "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundLikeMe.app"
+codesign --verify --deep --strict --verbose=2 "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app"
+spctl --assess --type execute --verbose=4 "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app"
+xcrun stapler validate "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app"
 ```
 
 ## MuseHub Windows release
@@ -132,7 +132,7 @@ The output is a signed x64 NSIS `.exe`. Tauri's NSIS installer supports silent i
 
 Test on a clean Windows account:
 
-1. Install normally and with `ThatSoundLikeMe-setup.exe /S`.
+1. Install normally and with `ThatSoundsLikeMe-setup.exe /S`.
 2. Launch from MuseHub and confirm install-state/application-ID detection.
 3. Grant microphone access, record and play a query, then search and play all four Freesound results.
 4. Submit like/dislike feedback after consent.

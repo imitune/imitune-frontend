@@ -1,4 +1,4 @@
-# ThatSoundLikeMe Web
+# ThatSoundsLikeMe Web
 
 Search audio samples by audio imitation. Record up to 10 seconds, run an ONNX embedding model in the browser, send the embedding to an API (Vercel function) that queries Pinecone, and render the top Freesound results with the embedded player.
 

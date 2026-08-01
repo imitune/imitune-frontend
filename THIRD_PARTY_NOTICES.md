@@ -14,13 +14,10 @@ transitive software dependencies.
 - Freesound audio is never redistributed by this application. Search results
   link to Freesound, where each sound's own licence applies.
 
-## Research documents and marks
+## Research documents and funding acknowledgement
 
-The Queen Mary University of London and UKRI names and logos are trademarks of
-their respective owners and are used in this research project with permission.
-They are not granted under the MIT licence. The participant information sheet
-and consent form are research-study documents and are not software components.
-
-SignPath Foundation will be asked to confirm that these non-code assets may be
-included in the desktop package. If it does not approve their inclusion, the
-desktop distribution will omit them while the research website retains them.
+The application does not distribute Queen Mary University of London or UKRI
+logos. It includes a plain-text acknowledgement that the work is supported by
+UK Research and Innovation under grant EP/S022694/1. The participant
+information sheet and consent form are research-study documents and are not
+software components.
