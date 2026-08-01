@@ -1,7 +1,7 @@
 {
   "name": "thatsoundslikeme-web",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "ThatSoundsLikeMe web application.",
   "license": "MIT",
