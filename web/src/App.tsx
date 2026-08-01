@@ -11,6 +11,29 @@ import type { Recording } from './lib/audio/recorder'
 import { installTauriLinkHandling, isDesktopApp } from './lib/desktop/runtime'
 import { audioBlobToMonoFloat32, loadSession, runEmbedding } from './lib/model/embedding'
 
+const FEEDBACK_CONSENT_KEY = 'thatsoundslikeme_feedback_consent_v1'
+const PREVIOUS_BRAND_CONSENT_KEY = 'thatsoundlikeme_feedback_consent_v1'
+const LEGACY_FEEDBACK_CONSENT_KEY = 'imitune_feedback_consent_v1'
+
+function loadFeedbackConsent() {
+  try {
+    if (localStorage.getItem(FEEDBACK_CONSENT_KEY) === 'true') return true
+    if (localStorage.getItem(PREVIOUS_BRAND_CONSENT_KEY) === 'true') {
+      localStorage.setItem(FEEDBACK_CONSENT_KEY, 'true')
+      localStorage.removeItem(PREVIOUS_BRAND_CONSENT_KEY)
+      return true
+    }
+    if (localStorage.getItem(LEGACY_FEEDBACK_CONSENT_KEY) === 'true') {
+      localStorage.setItem(FEEDBACK_CONSENT_KEY, 'true')
+      localStorage.removeItem(LEGACY_FEEDBACK_CONSENT_KEY)
+      return true
+    }
+  } catch {
+    // Feedback still works for the current session if persistent storage is unavailable.
+  }
+  return false
+}
+
 function App() {
   const desktopApp = isDesktopApp()
   const [results, setResults] = useState<SearchResult[]>([])
@@ -22,22 +45,13 @@ function App() {
   const [processingEmbedding, setProcessingEmbedding] = useState(false)
   const [hasValidAudio, setHasValidAudio] = useState(false)
   const [lastRecordingBlob, setLastRecordingBlob] = useState<Blob | null>(null)
-  const [hasConsent, setHasConsent] = useState(() => {
-    try {
-      return localStorage.getItem('imitune_feedback_consent_v1') === 'true'
-    } catch {
-      return false
-    }
-  })
+  const [hasConsent, setHasConsent] = useState(loadFeedbackConsent)
   const [showConsent, setShowConsent] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
   const [submittedAudioId, setSubmittedAudioId] = useState<string | null>(null)
   const [pendingRatingsData, setPendingRatingsData] = useState<RatingSubmission | null>(null)
   const [hasReadDocuments, setHasReadDocuments] = useState(true)
   const [hasAgreedToConsent, setHasAgreedToConsent] = useState(true)
-  const [isDarkMode, setIsDarkMode] = useState(
-    () => window.matchMedia('(prefers-color-scheme: dark)').matches,
-  )
   const devModeEnabled = ((import.meta.env.VITE_ENABLE_DEV_MODE as string | undefined) ?? 'false').toLowerCase() === 'true'
   const normalizedBasePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/$/, '')
   const normalizedPathname = window.location.pathname.replace(/\/+$/, '') || '/'
@@ -128,25 +142,6 @@ function App() {
   // Model URL fallback: use provided env var OR default to model in public folder respecting Vite base path.
   // Avoid using new URL() with a path-only base (can throw). import.meta.env.BASE_URL always ends with '/'.
   const modelUrl = modelEnvUrl || (import.meta.env.BASE_URL + 'model.onnx')
-
-  // Detect dark mode
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    
-    const handleChange = (e: MediaQueryListEvent) => {
-      setIsDarkMode(e.matches)
-    }
-    
-    // Modern browsers
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange)
-      return () => mediaQuery.removeEventListener('change', handleChange)
-    } else {
-      // Fallback for older browsers
-      mediaQuery.addListener(handleChange)
-      return () => mediaQuery.removeListener(handleChange)
-    }
-  }, [])
 
   useEffect(() => installTauriLinkHandling(), [])
 
@@ -348,7 +343,7 @@ function App() {
       return // Extra safety check
     }
     try {
-      localStorage.setItem('imitune_feedback_consent_v1', 'true')
+      localStorage.setItem(FEEDBACK_CONSENT_KEY, 'true')
     } catch {
       // Feedback still works for this session if persistent storage is unavailable.
     }
@@ -404,14 +399,27 @@ function App() {
   <div className="text-xl text-black dark:text-slate-300 text-center lg:text-right">
             <span className="quintessential-regular" style={{ fontStyle: 'italic' }}>*Magically*  </span> search for sounds with your voice
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAbout(true)}
-            className="text-base text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 underline transition-colors justify-self-center lg:justify-self-end lg:col-start-2 lg:-mt-4"
-            aria-label="About this project"
-          >
-            Learn more about this project ↗
-          </button>
+          <div className="flex items-center gap-3 justify-self-center lg:justify-self-end lg:col-start-2 lg:-mt-4">
+            <a
+              href="https://github.com/thatsoundslikeme"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="ThatSoundsLikeMe on GitHub"
+              className="text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-current">
+                <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.168 6.839 9.49.5.092.683-.217.683-.483 0-.237-.009-.866-.014-1.7-2.782.604-3.369-1.34-3.369-1.34-.455-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.004.07 1.532 1.03 1.532 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.349-1.087.635-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.092.39-1.985 1.03-2.684-.104-.253-.446-1.272.098-2.65 0 0 .84-.269 2.75 1.026A9.563 9.563 0 0112 6.8c.85.004 1.705.115 2.504.337 1.909-1.295 2.748-1.026 2.748-1.026.546 1.378.203 2.397.1 2.65.64.699 1.028 1.592 1.028 2.684 0 3.843-2.339 4.687-4.566 4.935.358.308.678.916.678 1.846 0 1.333-.012 2.41-.012 2.738 0 .268.18.58.688.482A10.002 10.002 0 0022 12c0-5.523-4.477-10-10-10z" />
+              </svg>
+            </a>
+            <button
+              type="button"
+              onClick={() => setShowAbout(true)}
+              className="text-base text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 underline transition-colors"
+              aria-label="About this project"
+            >
+              Learn more about this project ↗
+            </button>
+          </div>
         </header>
 
         {isDevRoute && (
@@ -553,29 +561,18 @@ function App() {
                   Sungkyun Chang
                 </a>
               </p>
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">and supported by</p>
-            </div>
-
-            {/* Logos */}
-            <div className="flex items-center justify-center gap-8">
-              <a href="https://www.qmul.ac.uk" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-75">
-                <img 
-                  src={`${import.meta.env.BASE_URL}${isDarkMode ? 'qmul_white.png' : 'qmul.png'}`} 
-                  alt="Queen Mary University of London" 
-                  className="h-10 w-auto object-contain"
-                />
-              </a>
-              <a href="https://www.ukri.org" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-75">
-                <img 
-                  src={`${import.meta.env.BASE_URL}${isDarkMode ? 'ukri_white.png' : 'ukri.png'}`} 
-                  alt="UKRI" 
-                  className="h-10 w-auto object-contain"
-                />
-              </a>
+              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+                and supported by UK Research and Innovation (grant number EP/S022694/1)
+              </p>
             </div>
 
             {/* Copyright */}
             <p className="text-xs text-slate-500 dark:text-slate-500">© 2026 thatsoundslike.me. All rights reserved.</p>
+            <p className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+              <a href={`${import.meta.env.BASE_URL}privacy.html`} className="hover:underline">Privacy</a>
+              <a href={`${import.meta.env.BASE_URL}code-signing-policy.html`} className="hover:underline">Code signing policy</a>
+              <a href={`${import.meta.env.BASE_URL}download.html`} className="hover:underline">Downloads</a>
+            </p>
           </div>
         </footer>
 
@@ -678,6 +675,9 @@ function App() {
           If you consent to data collection and submit likes or dislikes to returned sounds, you help us collect data to improve open-source query by vocal imitation models!
         </p>
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+          Read our <a href={`${import.meta.env.BASE_URL}privacy.html`} target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 underline">privacy policy</a> and <a href={`${import.meta.env.BASE_URL}code-signing-policy.html`} target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 underline">code signing policy</a>.
+        </p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
           We hope you enjoy playing around with the website! For feedback or questions, email c dοt plachouras αt qmul dοt ac dοt uk.
         </p>
         <div className="flex justify-end">
@@ -696,7 +696,9 @@ function App() {
                 // Turning off
                 setHasConsent(false)
                 try {
-                  localStorage.removeItem('imitune_feedback_consent_v1')
+                  localStorage.removeItem(FEEDBACK_CONSENT_KEY)
+                  localStorage.removeItem(PREVIOUS_BRAND_CONSENT_KEY)
+                  localStorage.removeItem(LEGACY_FEEDBACK_CONSENT_KEY)
                 } catch {
                   // The in-memory consent state is still updated below.
                 }

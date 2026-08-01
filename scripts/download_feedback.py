@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Download, consolidate, and analyse ThatSoundLikeMe feedback."""
+"""Download, consolidate, and analyse ThatSoundsLikeMe feedback."""
 
 import argparse
 import csv
@@ -270,7 +270,7 @@ def build_markdown_report(stats: Dict[str, Any]) -> str:
     results = stats["results"]
     attribution = stats["attribution"]
     lines = [
-        "# ThatSoundLikeMe feedback report",
+        "# ThatSoundsLikeMe feedback report",
         "",
         f"Generated: {stats['generated_at']}",
         "",
@@ -553,7 +553,7 @@ class FeedbackDownloader:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Download and analyse ThatSoundLikeMe feedback")
+    parser = argparse.ArgumentParser(description="Download and analyse ThatSoundsLikeMe feedback")
     parser.add_argument("--output-dir", type=Path, default=Path("./feedback_data"))
     parser.add_argument("--token", help="Vercel Blob token; prefer BLOB_READ_WRITE_TOKEN to avoid shell history")
     parser.add_argument("--force", action="store_true", help="Download files even when a local copy exists")

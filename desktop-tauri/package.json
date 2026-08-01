@@ -1,10 +1,10 @@
 {
-  "name": "thatsoundlikeme-tauri",
-  "version": "1.0.0",
+  "name": "thatsoundslikeme-tauri",
+  "version": "1.0.1",
   "private": true,
-  "description": "Tauri desktop distribution of ThatSoundLikeMe for MuseHub.",
-  "author": "Imitune",
-  "license": "UNLICENSED",
+  "description": "Tauri desktop distribution of ThatSoundsLikeMe for MuseHub.",
+  "author": "ThatSoundsLikeMe contributors",
+  "license": "MIT",
   "scripts": {
     "tauri": "tauri",
     "dev:web": "npm --prefix ../web run dev",

@@ -1,13 +1,13 @@
 [package]
-name = "thatsoundlikeme-tauri"
-version = "1.0.0"
+name = "thatsoundslikeme-tauri"
+version = "1.0.1"
 description = "Search Freesound by imitating a sound with your voice."
-authors = ["Imitune"]
+authors = ["ThatSoundsLikeMe contributors"]
 edition = "2024"
 rust-version = "1.88"
 
 [lib]
-name = "thatsoundlikeme_tauri_lib"
+name = "thatsoundslikeme_tauri_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

@@ -4,6 +4,8 @@ use serde_json::{Value, json};
 use std::time::Duration;
 use tauri::{AppHandle, Manager, State, path::BaseDirectory};
 
+// api.thatsoundslike.me becomes the stable endpoint after its DNS CNAME is
+// configured. Until then, retain the verified production alias.
 const DEFAULT_BACKEND_BASE: &str = "https://imitune-backend-steel.vercel.app";
 const DESKTOP_CORS_ORIGIN: &str = "https://thatsoundslike.me";
 const SEARCH_ROUTE: &str = "/api/search";
@@ -83,7 +85,7 @@ impl BackendClient {
             .header(CONTENT_TYPE, "application/json")
             .header(ORIGIN, DESKTOP_CORS_ORIGIN)
             .header(
-                HeaderName::from_static("x-imitune-client"),
+                HeaderName::from_static("x-thatsoundslikeme-client"),
                 format!("tauri/{}", self.client_version),
             )
             .body(body)
@@ -297,7 +299,7 @@ pub fn run() {
             open_microphone_settings,
         ])
         .run(tauri::generate_context!())
-        .expect("error while running ThatSoundLikeMe");
+        .expect("error while running ThatSoundsLikeMe");
 }
 
 #[cfg(test)]
@@ -385,7 +387,7 @@ mod tests {
         let request = request_receiver.recv().unwrap().to_ascii_lowercase();
         assert!(request.starts_with("post /api/search http/1.1"));
         assert!(request.contains("origin: https://thatsoundslike.me"));
-        assert!(request.contains("x-imitune-client: tauri/test"));
+        assert!(request.contains("x-thatsoundslikeme-client: tauri/test"));
         assert!(request.contains(r#"{"embedding":[0.25,-0.5]}"#));
         assert!(!response.ok);
         assert_eq!(response.status, 429);
