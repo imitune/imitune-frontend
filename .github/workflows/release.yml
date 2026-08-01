@@ -46,8 +46,8 @@ jobs:
         id: upload-unsigned-executable
         uses: actions/upload-artifact@v4
         with:
-          name: thatsoundlikeme-${{ inputs.version }}-windows-executable-unsigned
-          path: desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/ThatSoundLikeMe.exe
+          name: thatsoundslikeme-${{ inputs.version }}-windows-executable-unsigned
+          path: desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/ThatSoundsLikeMe.exe
           if-no-files-found: error
       - name: Submit executable signing request
         if: ${{ vars.SIGNPATH_ENABLED == 'true' }}
@@ -67,7 +67,7 @@ jobs:
       - name: Insert signed executable
         if: ${{ vars.SIGNPATH_ENABLED == 'true' }}
         shell: pwsh
-        run: Copy-Item signed-executable/ThatSoundLikeMe.exe desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/ThatSoundLikeMe.exe -Force
+        run: Copy-Item signed-executable/ThatSoundsLikeMe.exe desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/ThatSoundsLikeMe.exe -Force
       - name: Package NSIS installer
         shell: bash
         run: npm --prefix desktop-tauri exec -- tauri bundle --bundles nsis --target x86_64-pc-windows-msvc --no-sign
@@ -75,7 +75,7 @@ jobs:
         id: upload-unsigned-installer
         uses: actions/upload-artifact@v4
         with:
-          name: thatsoundlikeme-${{ inputs.version }}-windows-installer-unsigned
+          name: thatsoundslikeme-${{ inputs.version }}-windows-installer-unsigned
           path: desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
           if-no-files-found: error
       - name: Submit installer signing request
@@ -100,7 +100,7 @@ jobs:
       - name: Upload final installer
         uses: actions/upload-artifact@v4
         with:
-          name: thatsoundlikeme-${{ inputs.version }}-windows-x64
+          name: thatsoundslikeme-${{ inputs.version }}-windows-x64
           path: desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
           if-no-files-found: error
 
