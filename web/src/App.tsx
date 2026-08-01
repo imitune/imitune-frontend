@@ -52,9 +52,6 @@ function App() {
   const [pendingRatingsData, setPendingRatingsData] = useState<RatingSubmission | null>(null)
   const [hasReadDocuments, setHasReadDocuments] = useState(true)
   const [hasAgreedToConsent, setHasAgreedToConsent] = useState(true)
-  const [isDarkMode, setIsDarkMode] = useState(
-    () => window.matchMedia('(prefers-color-scheme: dark)').matches,
-  )
   const devModeEnabled = ((import.meta.env.VITE_ENABLE_DEV_MODE as string | undefined) ?? 'false').toLowerCase() === 'true'
   const normalizedBasePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/$/, '')
   const normalizedPathname = window.location.pathname.replace(/\/+$/, '') || '/'
@@ -145,25 +142,6 @@ function App() {
   // Model URL fallback: use provided env var OR default to model in public folder respecting Vite base path.
   // Avoid using new URL() with a path-only base (can throw). import.meta.env.BASE_URL always ends with '/'.
   const modelUrl = modelEnvUrl || (import.meta.env.BASE_URL + 'model.onnx')
-
-  // Detect dark mode
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    
-    const handleChange = (e: MediaQueryListEvent) => {
-      setIsDarkMode(e.matches)
-    }
-    
-    // Modern browsers
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange)
-      return () => mediaQuery.removeEventListener('change', handleChange)
-    } else {
-      // Fallback for older browsers
-      mediaQuery.addListener(handleChange)
-      return () => mediaQuery.removeListener(handleChange)
-    }
-  }, [])
 
   useEffect(() => installTauriLinkHandling(), [])
 
@@ -583,25 +561,9 @@ function App() {
                   Sungkyun Chang
                 </a>
               </p>
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">and supported by</p>
-            </div>
-
-            {/* Logos */}
-            <div className="flex items-center justify-center gap-8">
-              <a href="https://www.qmul.ac.uk" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-75">
-                <img 
-                  src={`${import.meta.env.BASE_URL}${isDarkMode ? 'qmul_white.png' : 'qmul.png'}`} 
-                  alt="Queen Mary University of London" 
-                  className="h-10 w-auto object-contain"
-                />
-              </a>
-              <a href="https://www.ukri.org" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-75">
-                <img 
-                  src={`${import.meta.env.BASE_URL}${isDarkMode ? 'ukri_white.png' : 'ukri.png'}`} 
-                  alt="UKRI" 
-                  className="h-10 w-auto object-contain"
-                />
-              </a>
+              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+                and supported by UK Research and Innovation (grant number EP/S022694/1)
+              </p>
             </div>
 
             {/* Copyright */}
