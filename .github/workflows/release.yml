@@ -42,6 +42,9 @@ jobs:
       - name: Build unsigned application executable
         shell: bash
         run: npm --prefix desktop-tauri exec -- tauri build --no-bundle --target x86_64-pc-windows-msvc --no-sign
+      - name: Prepare public executable for SignPath
+        shell: pwsh
+        run: Copy-Item desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/thatsoundslikeme-tauri.exe desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/ThatSoundsLikeMe.exe -Force
       - name: Upload executable for SignPath
         id: upload-unsigned-executable
         uses: actions/upload-artifact@v4
@@ -67,7 +70,7 @@ jobs:
       - name: Insert signed executable
         if: ${{ vars.SIGNPATH_ENABLED == 'true' }}
         shell: pwsh
-        run: Copy-Item signed-executable/ThatSoundsLikeMe.exe desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/ThatSoundsLikeMe.exe -Force
+        run: Copy-Item signed-executable/ThatSoundsLikeMe.exe desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/thatsoundslikeme-tauri.exe -Force
       - name: Package NSIS installer
         shell: bash
         run: npm --prefix desktop-tauri exec -- tauri bundle --bundles nsis --target x86_64-pc-windows-msvc --no-sign
