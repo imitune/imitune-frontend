@@ -389,7 +389,7 @@ function App() {
               }
             }}
           >
-            <img src={soundalikeLogo} alt="soundalike logo" className="w-auto max-w-full" style={{ height: '56px' }} />
+            <img src={soundalikeLogo} alt="soundalike logo" className="max-w-full" style={{ width: '56px', height: '56px' }} />
             <h1 className="text-4xl font-bold tracking-tight text-center sm:text-left" style={{ margin: 0 }}>
                 <span className="text-slate-500 dark:text-slate-400" style={{ fontStyle: 'normal' }}>that</span>
               <span className="text-black dark:text-white" style={{ fontStyle: 'italic' }}>soundslike</span>
@@ -543,12 +543,11 @@ function App() {
         )}
 
         {/* Credits Footer */}
-        <footer className="mt-6 pt-8 border-t border-slate-200 dark:border-slate-700">
-          <div className="flex flex-col items-center gap-8 text-center">
-            {/* Team names */}
+        <footer className="mt-6 border-t border-slate-200 pt-5 dark:border-slate-700">
+          <div className="space-y-1.5 text-center text-xs">
             <div>
-              <p className="mb-3 text-xs font-medium tracking-wider text-slate-500 dark:text-slate-400">Made with love by</p>
-              <p className="text-sm text-slate-700 dark:text-slate-300">
+              <p className="text-slate-700 dark:text-slate-300">
+                Made with love by{' '}
                 <a href="https://chrispla.me" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 hover:underline">
                   Christos Plachouras
                 </a>
@@ -559,18 +558,16 @@ function App() {
                 {", "}
                 <a href="https://uk.linkedin.com/in/mimbres-101" target="_blank" rel="noopener noreferrer" className="text-sky-600 dark:text-sky-400 hover:underline">
                   Sungkyun Chang
-                </a>
+                </a>.
               </p>
-              <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
-                and supported by UK Research and Innovation (grant number EP/S022694/1)
+              <p className="mt-1 text-slate-600 dark:text-slate-400">
+                Supported by UK Research and Innovation (grant number EP/S022694/1).
               </p>
             </div>
-
-            {/* Copyright */}
-            <p className="text-xs text-slate-500 dark:text-slate-500">© 2026 thatsoundslike.me. All rights reserved.</p>
-            <p className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="flex flex-wrap justify-center gap-x-2 text-slate-500 dark:text-slate-400">
+              <span>© 2026 thatsoundslike.me.</span>
               <a href={`${import.meta.env.BASE_URL}privacy.html`} className="hover:underline">Privacy</a>
-              <a href={`${import.meta.env.BASE_URL}code-signing-policy.html`} className="hover:underline">Code signing policy</a>
+              <a href={`${import.meta.env.BASE_URL}code-signing-policy.html`} className="hover:underline">Code signing</a>
               <a href={`${import.meta.env.BASE_URL}download.html`} className="hover:underline">Downloads</a>
             </p>
           </div>
