@@ -27,3 +27,16 @@ the SignPath UI so release review remains reproducible.
   and SignPath confirms the artifact configurations.
 
 Every request remains manually approved by the designated project approver.
+
+## Current status
+
+The repository contains preparation only. Windows beta releases remain
+unsigned, and the public code-signing policy says so explicitly. Do not set
+`SIGNPATH_ENABLED=true` or describe a release as SignPath-signed until the
+Foundation has accepted the project and the resulting signature has been
+verified.
+
+The application wording and evidence checklist are maintained in
+`APPLICATION_DRAFT.md`. The exact acknowledgement required by SignPath is
+prepared on the public policy page as conditional future wording; it does not
+describe the current unsigned Windows beta.

@@ -9,15 +9,18 @@
   <body>
     <p><a href="./">← ThatSoundsLikeMe</a></p>
     <h1>Privacy policy</h1>
-    <p>Last updated: 31 July 2026.</p>
+    <p>Last updated: 2 August 2026.</p>
     <h2>How search works</h2>
     <p>When you choose to record, your microphone audio and the ONNX model run locally in your browser or desktop application. The recording is converted locally into a 960-value embedding. A search sends that embedding, not the raw recording, to the ThatSoundsLikeMe API. The API queries Pinecone and returns Freesound links.</p>
     <h2>Optional research feedback</h2>
-    <p>Nothing is stored for research unless you explicitly enable data sharing and rate results. When enabled, your recording, ratings, result context and timestamp are sent to the ThatSoundsLikeMe API and stored in Vercel Blob for research. You can turn data sharing off at any time; it affects future submissions.</p>
+    <p>Nothing is stored for research unless you explicitly enable data sharing and rate results. When enabled, your recording, ratings, result context and timestamp are sent to the ThatSoundsLikeMe API and stored temporarily in encrypted Vercel Blob storage before transfer to secure Queen Mary University of London storage. After speech filtering and suitability review, contributed data may be included in a public research dataset as described in the study documents. A voice recording may potentially identify its speaker even when other data is removed, so participants are asked to submit non-speech vocalisations only.</p>
+    <p>The study has Queen Mary Ethics of Research Committee reference DSEECS25.073. Read the <a href="./participant_information_sheet.pdf">Participant Information Sheet</a> and <a href="./consent_form.pdf">Consent Form</a> before opting in. You can turn data sharing off at any time; this prevents future submissions.</p>
     <h2>Service providers</h2>
     <p>Search uses <a href="https://www.pinecone.io/privacy/">Pinecone</a>. Rate limiting uses <a href="https://upstash.com/trust/privacy">Upstash</a>. Optional feedback storage uses <a href="https://vercel.com/legal/privacy-policy">Vercel Blob</a>. Results are supplied as links to <a href="https://freesound.org/help/privacy/">Freesound</a>. Their terms and privacy policies apply when you use their services.</p>
     <h2>No background telemetry</h2>
     <p>ThatSoundsLikeMe does not send analytics, microphone recordings, or other information in the background. Network transfers happen only when you request a search or, separately, opt in to research feedback.</p>
+    <h2>Legal basis</h2>
+    <p>Queen Mary University of London processes study data for research under the lawful basis of public task. The study documents explain participant rights, risks, withdrawal and how to raise a concern.</p>
     <h2>Contact</h2>
     <p>For privacy questions, contact <a href="mailto:c.plachouras@qmul.ac.uk">c.plachouras@qmul.ac.uk</a>.</p>
   </body>

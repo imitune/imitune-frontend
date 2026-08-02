@@ -10,7 +10,7 @@ on:
       signing_version:
         description: Four-part-or-fewer Windows product version (for example 1.0.1)
         required: true
-        default: '1.0.1'
+        default: '1.0.2'
         type: string
 
 permissions:
@@ -100,11 +100,29 @@ jobs:
         if: ${{ vars.SIGNPATH_ENABLED == 'true' }}
         shell: pwsh
         run: Copy-Item signed-installer/*.exe desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/ -Force
-      - name: Upload final installer
+      - name: Generate release SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: .
+          format: spdx-json
+          output-file: ThatSoundsLikeMe-${{ inputs.version }}-windows-x64.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+      - name: Generate SHA-256 checksums
+        shell: bash
+        run: |
+          pushd desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis
+          sha256sum *.exe > "$GITHUB_WORKSPACE/SHA256SUMS-windows.txt"
+          popd
+          sha256sum ThatSoundsLikeMe-${{ inputs.version }}-windows-x64.spdx.json >> SHA256SUMS-windows.txt
+      - name: Upload final installer, checksum and SBOM
         uses: actions/upload-artifact@v4
         with:
           name: thatsoundslikeme-${{ inputs.version }}-windows-x64
-          path: desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+          path: |
+            desktop-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+            ThatSoundsLikeMe-${{ inputs.version }}-windows-x64.spdx.json
+            SHA256SUMS-windows.txt
           if-no-files-found: error
 
   signpath-notice:
