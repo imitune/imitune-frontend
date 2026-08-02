@@ -17,4 +17,5 @@ supported.
 
 Desktop release artifacts are built from the public source repository, tested
 before publication, and approved by the project release approver. Dependencies
-are audited in CI and release artifacts include checksums and an SBOM.
+are audited in CI. Production release artifacts include checksums and an SBOM;
+the earlier `v1.0.2-beta.1` testing release includes checksums but no SBOM.

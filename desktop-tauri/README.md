@@ -143,5 +143,6 @@ Test on a clean Windows account:
 ## Release gates
 
 - Deploy the hardened backend branch and configure production Upstash credentials. `X-RateLimit-Limit: 0` identifies the previous fail-open deployment and is not release-ready.
-- Upload only signed/notarized artifacts to MuseHub. Local `package:*` outputs are deliberately unsigned QA builds.
+- macOS MuseHub artifacts must be Developer ID signed, Apple-notarized and verified. Until SignPath is enabled, a Windows beta may be uploaded only when it is explicitly labelled unsigned and accompanied by a published SHA-256 checksum; production Windows releases must be signed.
+- Publish an SBOM with production releases. The `v1.0.2-beta.1` release predates this gate and contains checksums but no SBOM.
 - Free MuseHub products require no licensing integration. Paid products must use the MuseHub-approved DRM or Muse SDK flow before signing and packaging.
