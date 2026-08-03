@@ -4,9 +4,8 @@ use serde_json::{Value, json};
 use std::time::Duration;
 use tauri::{AppHandle, Manager, State, path::BaseDirectory};
 
-// api.thatsoundslike.me becomes the stable endpoint after its DNS CNAME is
-// configured. Until then, retain the verified production alias.
-const DEFAULT_BACKEND_BASE: &str = "https://imitune-backend-steel.vercel.app";
+// Stable production hostname, routed to the ThatSoundsLikeMe Vercel backend.
+const DEFAULT_BACKEND_BASE: &str = "https://api.thatsoundslike.me";
 const DESKTOP_CORS_ORIGIN: &str = "https://thatsoundslike.me";
 const SEARCH_ROUTE: &str = "/api/search";
 const FEEDBACK_ROUTE: &str = "/api/feedback";
