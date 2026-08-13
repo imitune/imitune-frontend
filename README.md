@@ -60,4 +60,4 @@ Public desktop betas, checksums, and release notes are available on the
 current macOS beta is Developer ID signed and Apple-notarized; the current
 Windows beta is unsigned. A Certum Open Source Code Signing in the Cloud
 certificate has been purchased for future free, open-source Windows releases
-and is awaiting identity verification and activation.
+and is awaiting issuance and activation.
