@@ -25,7 +25,7 @@ UK Research and Innovation under grant EP/S022694/1. The participant
 information sheet and consent form are research-study documents and are not
 software components.
 
-Before applying to SignPath Foundation, the project will confirm that the
+Before the next production desktop release, the project will confirm that the
 bundled participant documents may be redistributed with the open-source
 desktop package. If that cannot be confirmed, they will be removed from the
 package and linked from the research website instead.

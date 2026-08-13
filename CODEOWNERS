@@ -2,11 +2,11 @@
 /.github/ @chrispla
 /desktop-tauri/src-tauri/tauri.conf.json @chrispla
 /desktop-tauri/scripts/ @chrispla
-/signpath/ @chrispla
 /CODEOWNERS @chrispla
 /CONTRIBUTING.md @chrispla
 /RELEASE.md @chrispla
 /SECURITY.md @chrispla
 /THIRD_PARTY_NOTICES.md @chrispla
 /web/public/code-signing-policy.html @chrispla
+/web/public/download.html @chrispla
 /web/public/privacy.html @chrispla
