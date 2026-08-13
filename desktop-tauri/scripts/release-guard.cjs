@@ -47,6 +47,15 @@ function guardWindows() {
   if (!windows?.signCommand && !windows?.certificateThumbprint) {
     throw new Error('The Windows release config must define signCommand or certificateThumbprint.')
   }
+  if (windows?.certificateThumbprint === 'REPLACE_WITH_CERTIFICATE_THUMBPRINT') {
+    throw new Error('Replace the example Windows certificate thumbprint before building.')
+  }
+  if (windows?.certificateThumbprint && windows?.digestAlgorithm !== 'sha256') {
+    throw new Error('The Windows release must use the SHA-256 digest algorithm.')
+  }
+  if (windows?.certificateThumbprint && !windows?.timestampUrl) {
+    throw new Error('The Windows release must configure a trusted timestamp URL.')
+  }
 }
 
 try {

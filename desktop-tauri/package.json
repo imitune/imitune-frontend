@@ -15,8 +15,9 @@
     "verify": "npm test && npm run check && npm run build:web",
     "package:mac": "tauri build --bundles app --target universal-apple-darwin --no-sign",
     "package:win": "tauri build --bundles nsis --target x86_64-pc-windows-msvc --no-sign",
+    "prepare:win-signing": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-certum-windows-signing.ps1",
     "dist:mac": "node scripts/release-guard.cjs mac && tauri build --bundles app --target universal-apple-darwin && node scripts/zip-macos.cjs",
-    "dist:win": "node scripts/release-guard.cjs win && tauri build --bundles nsis --target x86_64-pc-windows-msvc --config src-tauri/tauri.windows.release.conf.json"
+    "dist:win": "node scripts/release-guard.cjs win && tauri build --bundles nsis --target x86_64-pc-windows-msvc --config src-tauri/tauri.windows.release.conf.json && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-certum-windows-signatures.ps1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.11.4"
