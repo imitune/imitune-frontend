@@ -12,7 +12,7 @@ const appPath = path.resolve(
 const outputDirectory = path.resolve(__dirname, '../dist')
 const outputPath = path.join(
   outputDirectory,
-  `ThatSoundsLikeMe-${packageJson.version}-mac-universal.zip`,
+  `ThatSoundsLikeMe_${packageJson.version}_mac-universal.app.zip`,
 )
 
 if (!fs.existsSync(appPath)) {
@@ -24,7 +24,7 @@ fs.rmSync(outputPath, { force: true })
 
 const result = spawnSync(
   '/usr/bin/ditto',
-  ['-c', '-k', '--sequesterRsrc', '--keepParent', path.basename(appPath), outputPath],
+  ['-c', '-k', '--keepParent', path.basename(appPath), outputPath],
   { cwd: path.dirname(appPath), stdio: 'inherit' },
 )
 if (result.status !== 0) {
