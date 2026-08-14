@@ -2,7 +2,7 @@ use reqwest::header::{ACCEPT, CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue, 
 use serde::Serialize;
 use serde_json::{Value, json};
 use std::time::Duration;
-use tauri::{AppHandle, Manager, State, path::BaseDirectory};
+use tauri::{Manager, State};
 
 // Stable production hostname, routed to the ThatSoundsLikeMe Vercel backend.
 const DEFAULT_BACKEND_BASE: &str = "https://api.thatsoundslike.me";
@@ -239,25 +239,23 @@ fn open_external(raw_url: String) -> Result<bool, String> {
         .map_err(|error| format!("Could not open the external link: {error}"))
 }
 
-fn document_filename(document: &str) -> Option<&'static str> {
+fn research_document_url(document: &str) -> Option<&'static str> {
     match document {
-        "participant-information" => Some("participant_information_sheet.pdf"),
-        "consent-form" => Some("consent_form.pdf"),
+        "participant-information" => {
+            Some("https://thatsoundslike.me/participant_information_sheet.pdf")
+        }
+        "consent-form" => Some("https://thatsoundslike.me/consent_form.pdf"),
         _ => None,
     }
 }
 
 #[tauri::command]
-fn open_document(app: AppHandle, document: String) -> Result<bool, String> {
-    let filename =
-        document_filename(&document).ok_or_else(|| "Unknown bundled document.".to_owned())?;
-    let path = app
-        .path()
-        .resolve(format!("documents/{filename}"), BaseDirectory::Resource)
-        .map_err(|error| format!("Could not resolve the bundled document: {error}"))?;
-    open::that(path)
+fn open_research_document(document: String) -> Result<bool, String> {
+    let url =
+        research_document_url(&document).ok_or_else(|| "Unknown research document.".to_owned())?;
+    open::that(url)
         .map(|_| true)
-        .map_err(|error| format!("Could not open the bundled document: {error}"))
+        .map_err(|error| format!("Could not open the research document: {error}"))
 }
 
 #[tauri::command]
@@ -294,7 +292,7 @@ pub fn run() {
             search,
             feedback,
             open_external,
-            open_document,
+            open_research_document,
             open_microphone_settings,
         ])
         .run(tauri::generate_context!())
@@ -304,8 +302,8 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::{
-        BackendClient, SEARCH_PAYLOAD_LIMIT, SEARCH_ROUTE, document_filename,
-        normalize_backend_base,
+        BackendClient, SEARCH_PAYLOAD_LIMIT, SEARCH_ROUTE, normalize_backend_base,
+        research_document_url,
     };
     use serde_json::json;
     use std::{
@@ -338,11 +336,14 @@ mod tests {
     #[test]
     fn only_known_research_documents_can_be_opened() {
         assert_eq!(
-            document_filename("participant-information"),
-            Some("participant_information_sheet.pdf")
+            research_document_url("participant-information"),
+            Some("https://thatsoundslike.me/participant_information_sheet.pdf")
         );
-        assert_eq!(document_filename("consent-form"), Some("consent_form.pdf"));
-        assert_eq!(document_filename("../../secret"), None);
+        assert_eq!(
+            research_document_url("consent-form"),
+            Some("https://thatsoundslike.me/consent_form.pdf")
+        );
+        assert_eq!(research_document_url("../../secret"), None);
     }
 
     #[tokio::test]

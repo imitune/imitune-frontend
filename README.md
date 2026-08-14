@@ -55,9 +55,9 @@ See `desktop-tauri/README.md` for local development, packaging, signing, MuseHub
 
 ## Releases
 
-Public desktop betas, checksums, and release notes are available on the
+Public desktop releases, checksums, SBOMs, and release notes are available on the
 [GitHub releases page](https://github.com/thatsoundslikeme/app/releases). The
-current macOS beta is Developer ID signed and Apple-notarized; the current
-Windows beta is unsigned. A Certum Open Source Code Signing in the Cloud
-certificate has been purchased for future free, open-source Windows releases
-and is awaiting issuance and activation.
+macOS release is Developer ID signed and Apple-notarized. Windows releases from
+v1.0.3 onward are Authenticode-signed and timestamped with the active Certum
+Open Source Code Signing in the Cloud certificate issued to Open Source
+Developer Christos Plachouras.

@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "ThatSoundsLikeMe",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "identifier": "me.thatsoundslikeme.desktop",
   "build": {
     "beforeDevCommand": "npm run dev:web",
@@ -39,10 +39,6 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": {
-      "../../web/public/participant_information_sheet.pdf": "documents/participant_information_sheet.pdf",
-      "../../web/public/consent_form.pdf": "documents/consent_form.pdf"
-    },
     "macOS": {
       "minimumSystemVersion": "12.0",
       "entitlements": "./Entitlements.plist",

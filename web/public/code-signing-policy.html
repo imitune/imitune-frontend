@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Code signing policy — ThatSoundsLikeMe</title>
-    <style>body{font-family:system-ui,sans-serif;line-height:1.55;max-width:48rem;margin:2rem auto;padding:0 1rem;color:#172033}a{color:#0369a1}h1,h2{line-height:1.2}</style>
+    <link rel="stylesheet" href="./policy.css" />
   </head>
   <body>
     <p><a href="./">← ThatSoundsLikeMe</a></p>
@@ -12,15 +12,15 @@
     <p>ThatSoundsLikeMe release downloads are published from the public project repository.</p>
     <h2>Current signing status</h2>
     <p>macOS releases are signed with Queen Mary University of London's Apple Developer ID identity, notarized by Apple, and stapled before publication.</p>
-    <p>Windows releases are currently unsigned. Windows may show a SmartScreen warning; only install a Windows build downloaded from an official release and verify its checksum.</p>
+    <p>Windows releases beginning with v1.0.3 are Authenticode-signed and timestamped using the project's Certum Open Source Code Signing in the Cloud certificate. Only install a Windows build downloaded from an official release and verify its checksum.</p>
     <h2>Release responsibilities</h2>
     <ul>
       <li>Authors: <a href="https://github.com/chrispla">chrispla</a>, <a href="https://github.com/mimbres">mimbres</a>, and <a href="https://github.com/chymaera96">chymaera96</a>.</li>
       <li>Reviewer for outside contributions: <a href="https://github.com/chrispla">chrispla</a>.</li>
       <li>Signing approver: <a href="https://github.com/chrispla">chrispla</a>.</li>
     </ul>
-    <p>Release downloads include SHA-256 checksums. An SBOM will be included in future production releases. See the <a href="./privacy.html">privacy policy</a> for data-handling information.</p>
-    <h2>Planned Windows signing</h2>
-    <p>A Certum Open Source Code Signing in the Cloud certificate has been purchased and is awaiting issuance and activation. Future signed Windows releases will identify the verified individual open-source developer and will be timestamped. This statement does not apply to the current unsigned Windows beta.</p>
+    <p>Production release downloads include SHA-256 checksums and an SBOM. See the <a href="./privacy.html">privacy policy</a> for data-handling information.</p>
+    <h2>Windows signing certificate</h2>
+    <p>Certum has issued an active Open Source Code Signing in the Cloud certificate to Open Source Developer Christos Plachouras. Windows releases from v1.0.3 onward are signed with this certificate and carry a trusted timestamp.</p>
   </body>
 </html>

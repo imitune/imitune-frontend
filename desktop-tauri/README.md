@@ -125,9 +125,8 @@ Official references: [Certum activation](https://support.certum.eu/en/how-to-act
 [required documents](https://support.certum.eu/en/code-signing-required-documents/),
 and [cloud signing with SignTool](https://support.certum.eu/en/signing-the-code-using-tools-like-signtool-and-jarsigner-instruction/).
 
-Certificate activation is a one-time manual process. Certum requires identity
-verification, a utility bill in the subscriber's name, and the URL of the
-public ongoing open-source project. After Certum issues the certificate:
+Certificate issuance and SimplySign activation are one-time manual steps. With
+the active certificate:
 
 1. Install the official SimplySign mobile app and SimplySign Desktop on the
    Windows release machine.
@@ -160,10 +159,11 @@ Run:
 npm run dist:win
 ```
 
-Keep SimplySign Desktop signed in and approve its signing prompts. Tauri signs
-the application executable before creating the installer, then signs the outer
-NSIS installer. The command fails unless both files have a valid Certum
-Authenticode signature and trusted timestamp. The final installer is below
+Keep SimplySign Desktop signed in and approve its signing prompts. The release
+script signs the application executable, rebuilds the NSIS installer from that
+signed executable, then signs the outer installer. The command fails unless
+both files have a valid Certum Authenticode signature and trusted timestamp.
+The final installer is below
 `src-tauri\target\x86_64-pc-windows-msvc\release\bundle\nsis`.
 
 Tauri's NSIS installer supports silent installation with `/S`, installs
@@ -183,6 +183,6 @@ Test on a clean Windows account:
 ## Release gates
 
 - Deploy the hardened backend branch and configure production Upstash credentials. `X-RateLimit-Limit: 0` identifies the previous fail-open deployment and is not release-ready.
-- macOS MuseHub artifacts must be Developer ID signed, Apple-notarized and verified. Until the Certum certificate is issued and used, a Windows beta may be uploaded only when it is explicitly labelled unsigned and accompanied by a published SHA-256 checksum; production Windows releases must be signed.
+- macOS MuseHub artifacts must be Developer ID signed, Apple-notarized and verified. Windows betas uploaded before a valid Certum signature exists must be explicitly labelled unsigned and accompanied by a published SHA-256 checksum; production Windows releases must be signed.
 - Publish an SBOM with production releases. The `v1.0.2-beta.1` release predates this gate and contains checksums but no SBOM.
 - Free MuseHub products require no licensing integration. Paid products must use the MuseHub-approved DRM or Muse SDK flow before signing and packaging.
