@@ -15,7 +15,7 @@ $candidates = Get-ChildItem Cert:\CurrentUser\My | Where-Object {
   $_.NotBefore -le $now -and
   $_.NotAfter -gt $now -and
   $_.Issuer -match 'Certum' -and
-  ($_.EnhancedKeyUsageList.ObjectId.Value -contains $codeSigningOid)
+  ($_.EnhancedKeyUsageList.ObjectId -contains $codeSigningOid)
 }
 
 if ($CertificateThumbprint) {

@@ -16,17 +16,26 @@ if ($installers.Count -eq 0) {
   throw 'No NSIS installer was found to verify.'
 }
 
+$windowsKitsBin = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
+$signTool = Get-ChildItem -LiteralPath $windowsKitsBin -Filter signtool.exe -Recurse |
+  Where-Object { $_.Directory.Name -eq 'x64' } |
+  Sort-Object { [version]$_.Directory.Parent.Name } -Descending |
+  Select-Object -First 1 -ExpandProperty FullName
+
+if (-not $signTool) {
+  throw 'signtool.exe was not found in the Windows 10 SDK.'
+}
+
 foreach ($artifact in $artifacts) {
-  $signature = Get-AuthenticodeSignature -FilePath $artifact
-  if ($signature.Status -ne 'Valid') {
-    throw "Authenticode verification failed for $artifact: $($signature.Status) $($signature.StatusMessage)"
+  $verificationOutput = (& $signTool verify /pa /all /v /tw $artifact 2>&1) | Out-String
+  if ($LASTEXITCODE -ne 0) {
+    throw "Authenticode verification failed for ${artifact}:`n$verificationOutput"
   }
-  if (-not $signature.TimeStamperCertificate) {
+  if ($verificationOutput -notmatch 'The signature is timestamped:') {
     throw "No trusted timestamp was found on $artifact."
   }
-  if ($signature.SignerCertificate.Issuer -notmatch 'Certum') {
+  if ($verificationOutput -notmatch 'Certum Code Signing') {
     throw "The signature on $artifact was not issued by Certum."
   }
   Write-Host "Valid Certum signature and timestamp: $artifact"
-  Write-Host "  Subject: $($signature.SignerCertificate.Subject)"
 }

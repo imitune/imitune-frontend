@@ -1,0 +1,39 @@
+:root {
+  color-scheme: light;
+  --page-background: #f7f3eb;
+  --page-text: #172033;
+  --page-link: #0369a1;
+}
+
+html {
+  min-height: 100%;
+  background: var(--page-background);
+}
+
+body {
+  max-width: 48rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  background: var(--page-background);
+  color: var(--page-text);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.55;
+}
+
+a {
+  color: var(--page-link);
+}
+
+h1,
+h2 {
+  line-height: 1.2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page-background: #1a1a1a;
+    --page-text: #f1f5f9;
+    --page-link: #7dd3fc;
+  }
+}

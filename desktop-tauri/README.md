@@ -159,10 +159,11 @@ Run:
 npm run dist:win
 ```
 
-Keep SimplySign Desktop signed in and approve its signing prompts. Tauri signs
-the application executable before creating the installer, then signs the outer
-NSIS installer. The command fails unless both files have a valid Certum
-Authenticode signature and trusted timestamp. The final installer is below
+Keep SimplySign Desktop signed in and approve its signing prompts. The release
+script signs the application executable, rebuilds the NSIS installer from that
+signed executable, then signs the outer installer. The command fails unless
+both files have a valid Certum Authenticode signature and trusted timestamp.
+The final installer is below
 `src-tauri\target\x86_64-pc-windows-msvc\release\bundle\nsis`.
 
 Tauri's NSIS installer supports silent installation with `/S`, installs
