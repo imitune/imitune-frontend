@@ -89,23 +89,36 @@ The Windows command creates an unsigned x64 NSIS installer below `src-tauri\targ
 
 ## MuseHub macOS release
 
-MuseHub supports ZIP archives of self-contained `.app` bundles and notarized DMG images. ThatSoundsLikeMe uses a DMG because the Partner Portal failed to classify its ZIP archives. The configured bundle is universal, has bundle ID `me.thatsoundslikeme.desktop`, requires macOS 12+, contains no updater, and packages both consent documents.
+MuseHub requested a signed and notarized PKG for ThatSoundsLikeMe. The installer contains only the self-contained app, runs without custom scripts or UI, and installs it into `/Applications`. The app is universal, has bundle ID `me.thatsoundslikeme.desktop`, requires macOS 12+, contains no updater, and packages both consent documents.
 
-Install a **Developer ID Application** certificate and configure one Tauri-supported notarization credential set:
+Install both Apple distribution identities:
+
+- **Developer ID Application** signs the app bundle.
+- **Developer ID Installer** signs the PKG.
+
+Store notarization credentials in the login Keychain once:
 
 ```bash
-export APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name (TEAMID)"
-export APPLE_API_KEY=YOUR_KEY_ID
-export APPLE_API_ISSUER=YOUR_ISSUER_ID
-export APPLE_API_KEY_PATH=/absolute/path/to/AuthKey_KEYID.p8
+xcrun notarytool store-credentials "ThatSoundsLikeMe-notary" \
+  --apple-id "YOUR_APPLE_ID" \
+  --team-id "YOUR_TEAM_ID" \
+  --password "YOUR_APP_SPECIFIC_PASSWORD"
+```
+
+Then configure the release identities and Keychain profile:
+
+```bash
+export APPLE_SIGNING_IDENTITY="Developer ID Application: Queen Mary University of London (TEAMID)"
+export APPLE_INSTALLER_SIGNING_IDENTITY="Developer ID Installer: Queen Mary University of London (TEAMID)"
+export APPLE_NOTARY_KEYCHAIN_PROFILE="ThatSoundsLikeMe-notary"
 npm run dist:mac
 ```
 
-Apple ID credentials (`APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`) are also supported. The release command refuses to run without both a signing identity and notarization credentials, then builds, signs, notarizes, and staples the universal DMG. It copies the final image and checksum to:
+The release command refuses to run unless both signing identities and the notarization profile are available. It builds and signs the universal app, creates and signs the PKG, submits the PKG to Apple, staples the accepted ticket, verifies the installer, and writes:
 
 ```text
-dist/ThatSoundsLikeMe_1.0.3_mac-universal.dmg
-dist/ThatSoundsLikeMe_1.0.3_mac-universal.dmg.sha256
+dist/ThatSoundsLikeMe_1.0.3_mac-universal.pkg
+dist/ThatSoundsLikeMe_1.0.3_mac-universal.pkg.sha256
 ```
 
 Verify before upload:
@@ -113,10 +126,9 @@ Verify before upload:
 ```bash
 codesign --verify --deep --strict --verbose=2 "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app"
 spctl --assess --type execute --verbose=4 "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app"
-xcrun stapler validate "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app"
-codesign --verify --strict --verbose=2 "dist/ThatSoundsLikeMe_1.0.3_mac-universal.dmg"
-spctl --assess --type open --context context:primary-signature --verbose=4 "dist/ThatSoundsLikeMe_1.0.3_mac-universal.dmg"
-xcrun stapler validate "dist/ThatSoundsLikeMe_1.0.3_mac-universal.dmg"
+pkgutil --check-signature "dist/ThatSoundsLikeMe_1.0.3_mac-universal.pkg"
+spctl --assess --type install --verbose=4 "dist/ThatSoundsLikeMe_1.0.3_mac-universal.pkg"
+xcrun stapler validate "dist/ThatSoundsLikeMe_1.0.3_mac-universal.pkg"
 ```
 
 ## MuseHub Windows release

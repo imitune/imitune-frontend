@@ -9,31 +9,45 @@ function hasEnvironmentValue(name) {
 }
 
 function hasMacSigningIdentity() {
-  if (hasEnvironmentValue('APPLE_SIGNING_IDENTITY')) return true
   try {
     const identities = execFileSync(
       'security',
       ['find-identity', '-v', '-p', 'codesigning'],
       { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
     )
+    if (hasEnvironmentValue('APPLE_SIGNING_IDENTITY')) {
+      return identities.includes(process.env.APPLE_SIGNING_IDENTITY.trim())
+    }
     return identities.includes('Developer ID Application:')
   } catch {
     return false
   }
 }
 
-function hasMacNotarizationCredentials() {
-  const apiKey = ['APPLE_API_KEY', 'APPLE_API_ISSUER', 'APPLE_API_KEY_PATH'].every(hasEnvironmentValue)
-  const appleId = ['APPLE_ID', 'APPLE_PASSWORD', 'APPLE_TEAM_ID'].every(hasEnvironmentValue)
-  return apiKey || appleId
+function hasMacInstallerIdentity() {
+  try {
+    const identities = execFileSync('security', ['find-identity', '-v'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+    if (hasEnvironmentValue('APPLE_INSTALLER_SIGNING_IDENTITY')) {
+      return identities.includes(process.env.APPLE_INSTALLER_SIGNING_IDENTITY.trim())
+    }
+    return identities.includes('Developer ID Installer:')
+  } catch {
+    return false
+  }
 }
 
 function guardMac() {
   if (!hasMacSigningIdentity()) {
-    throw new Error('A Developer ID Application certificate or APPLE_SIGNING_IDENTITY is required.')
+    throw new Error('An installed Developer ID Application identity is required.')
   }
-  if (!hasMacNotarizationCredentials()) {
-    throw new Error('Apple notarization credentials are required for a MuseHub release.')
+  if (!hasMacInstallerIdentity()) {
+    throw new Error('An installed Developer ID Installer identity is required for the MuseHub PKG.')
+  }
+  if (!hasEnvironmentValue('APPLE_NOTARY_KEYCHAIN_PROFILE')) {
+    throw new Error('APPLE_NOTARY_KEYCHAIN_PROFILE must name a validated notarytool profile.')
   }
 }
 
