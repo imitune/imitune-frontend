@@ -89,7 +89,7 @@ The Windows command creates an unsigned x64 NSIS installer below `src-tauri\targ
 
 ## MuseHub macOS release
 
-MuseHub's recommended application format is a ZIP containing a self-contained `.app`. The configured bundle is universal, has bundle ID `me.thatsoundslikeme.desktop`, requires macOS 12+, contains no updater, and packages both consent documents.
+MuseHub supports ZIP archives of self-contained `.app` bundles and notarized DMG images. ThatSoundsLikeMe uses a DMG because the Partner Portal failed to classify its ZIP archives. The configured bundle is universal, has bundle ID `me.thatsoundslikeme.desktop`, requires macOS 12+, contains no updater, and packages both consent documents.
 
 Install a **Developer ID Application** certificate and configure one Tauri-supported notarization credential set:
 
@@ -101,10 +101,11 @@ export APPLE_API_KEY_PATH=/absolute/path/to/AuthKey_KEYID.p8
 npm run dist:mac
 ```
 
-Apple ID credentials (`APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`) are also supported. The release command refuses to run without both a signing identity and notarization credentials, builds the universal `.app`, then creates:
+Apple ID credentials (`APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`) are also supported. The release command refuses to run without both a signing identity and notarization credentials, then builds, signs, notarizes, and staples the universal DMG. It copies the final image and checksum to:
 
 ```text
-dist/ThatSoundsLikeMe_1.0.3_mac-universal.app.zip
+dist/ThatSoundsLikeMe_1.0.3_mac-universal.dmg
+dist/ThatSoundsLikeMe_1.0.3_mac-universal.dmg.sha256
 ```
 
 Verify before upload:
@@ -113,6 +114,9 @@ Verify before upload:
 codesign --verify --deep --strict --verbose=2 "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app"
 spctl --assess --type execute --verbose=4 "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app"
 xcrun stapler validate "src-tauri/target/universal-apple-darwin/release/bundle/macos/ThatSoundsLikeMe.app"
+codesign --verify --strict --verbose=2 "dist/ThatSoundsLikeMe_1.0.3_mac-universal.dmg"
+spctl --assess --type open --context context:primary-signature --verbose=4 "dist/ThatSoundsLikeMe_1.0.3_mac-universal.dmg"
+xcrun stapler validate "dist/ThatSoundsLikeMe_1.0.3_mac-universal.dmg"
 ```
 
 ## MuseHub Windows release
