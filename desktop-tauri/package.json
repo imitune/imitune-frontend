@@ -1,6 +1,6 @@
 {
   "name": "thatsoundslikeme-tauri",
-  "version": "1.0.2",
+  "version": "1.0.3-beta.1",
   "private": true,
   "description": "Tauri desktop distribution of ThatSoundsLikeMe for MuseHub.",
   "author": "ThatSoundsLikeMe contributors",
